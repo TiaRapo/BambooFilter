@@ -14,7 +14,7 @@ make
 ```
 
 ## Coding Style
-This project follows the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html):
+This project follows the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)
 
 ## Team Members
 
