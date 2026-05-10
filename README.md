@@ -6,6 +6,11 @@ This project is a part of the [Bioinformatika 1](https://www.fer.unizg.hr/predme
 
 TODO
 
+## Requirements
+- C++20-compatible compiler
+- C++20 standard
+- CMake >= 3.10
+
 ## Compiling
 ``` sh
 cd build

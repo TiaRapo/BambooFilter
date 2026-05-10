@@ -1,26 +1,34 @@
-#ifndef SRC_BAMBOOFILTER_H
-#define SRC_BAMBOOFILTER_H
+#ifndef BAMBOOFILTER_H
+#define BAMBOOFILTER_H
 
-#include "utility.h"
+#include <cstddef>
+#include <cstdint>
+#include <span>
+#include <random>
+
 #include "segment.h"
 
 class BambooFilter {
     public:
-        // TODO: Figure out function parameters that some of these need
-        BambooFilter();
+        BambooFilter(uint32_t capacity /*TODO*/);
 
         ~BambooFilter();
 
-        bool Insert();
-        bool Lookup() const;
-        bool Delete();
+        bool Insert(std::span<const std::byte> elem);
+        bool Lookup(std::span<const std::byte> elem) const;
+        bool Delete(std::span<const std::byte> elem);
         void Extend();
         void Compress();
 
     private:
         // TODO: Internal helper functions ?
 
-        // TODO: Attributes
+        const std::uint32_t kSeed_;
+        const std::size_t kNumBitsInitialTable_; // Bucket bit count + initial segment bit count
+
+        std::size_t num_bits_table_;
+
+        // TODO: More attributes
 };
 
 #endif

@@ -1,18 +1,16 @@
-#ifndef SRC_SEGMENT_H
-#define SRC_SEGMENT_H
-
-#include "utility.h"
+#ifndef SEGMENT_H
+#define SEGMENT_H
 
 class Segment {
     public:
         // TODO: Figure out function parameters that some of these need
-        Segment();
+        Segment(/*TODO*/);
 
         ~Segment();
 
-        bool Insert();
-        bool Lookup() const;
-        bool Delete();
+        bool Insert(/*TODO*/);
+        bool Lookup(/*TODO*/) const;
+        bool Delete(/*TODO*/);
         // TODO: Probably needs more public functions
 
     private:
