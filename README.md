@@ -2,11 +2,21 @@
 
 This project is a part of the [Bioinformatika 1](https://www.fer.unizg.hr/predmet/bio1) course on the Faculty of Electrical Engineering and Computing in Zagreb.
 
-# Project Description
+## Project Description
 
 TODO
 
-# Team Members
+## Compiling
+``` sh
+cd build
+cmake ..
+make
+```
+
+## Coding Style
+This project follows the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html):
+
+## Team Members
 
 - Ivan Dujmić
 - Tia Rapo
