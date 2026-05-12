@@ -28,32 +28,9 @@ bool BambooFilter::Insert(std::span<const std::byte> elem) {
 
     uint32_t fingerprint = (hash >> kNumBitsInitialTable_) & kMaskFingerprint;
     uint32_t index_bucket = hash & kMaskBucket;
-    uint32_t index_bucket_other = (index_bucket ^ fingerprint) & kMaskBucket;
     uint32_t index_segment = (hash >> kNumBitsBucket) & (num_bits_table_ - kNumBitsBucket);
 
-    bool is_inserted = false;
-
-    if (!segments_[index_segment]->Insert(fingerprint, index_bucket) &&
-        !segments_[index_segment]->Insert(fingerprint, index_bucket_other)) { // Couldn't find an empty entry in either bucket of segment
-        if (rng_() & 1u) { // 50% chance to pick each of the two buckets
-            index_bucket = index_bucket_other;
-        }
-
-        for (std::size_t i = 0 ; i < max_evictions_ ; i++) {
-            // Randomly select an entry e from bucket
-            // Swap our fingerprint with the one in that entry
-            // Calculate other bucket of the swapped fingerprint
-            // If that bucket has an empty entry:
-                // Store f there
-                // is_inserted = true
-                // Break
-            // Swap buckets
-        }
-    } else {
-        is_inserted = true;
-    }
-
-    if (!is_inserted) {
+    if (!segments_[index_segment]->Insert(fingerprint, index_bucket, rng_)) { // Couldn't find free spot for entry
         // segments_[index_segment]->overflow.Insert(fingerprint, index_bucket);
     }
 

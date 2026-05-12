@@ -25,16 +25,16 @@ class BambooFilter {
     private:
         // TODO: Internal helper functions ?
 
+        // Constants
         const std::size_t kNumBitsInitialTable_; // Bucket bit count + initial segment bit count
         const std::uint32_t kSeed_;
 
+        // Attributes
         std::vector<std::unique_ptr<Segment>> segments_;
         std::size_t num_bits_table_;
-        std::size_t max_evictions_;
 
+        // Helpers
         std::mt19937 rng_;
-
-        // TODO: More attributes
 };
 
 #endif
