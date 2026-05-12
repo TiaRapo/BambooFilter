@@ -1,22 +1,36 @@
 #ifndef SEGMENT_H
 #define SEGMENT_H
 
+#include <cstdint>
+#include <random>
+#include <vector>
+#include <memory>
+
 class Segment {
     public:
-        // TODO: Figure out function parameters that some of these need
         Segment(/*TODO*/);
 
         ~Segment();
 
-        bool Insert(/*TODO*/);
+        [[nodiscard]] Segment* GetOverflow() noexcept;
+
+        bool Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng);
         bool Lookup(/*TODO*/) const;
         bool Delete(/*TODO*/);
         // TODO: Probably needs more public functions
 
     private:
-        // TODO: Internal helper functions ?
+        // Internal helper functions
+        [[nodiscard]] inline uint32_t GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) const; 
+        inline bool InsertInBucket(uint32_t fingerprint, uint32_t index_bucket);
+        [[nodiscard]] inline uint32_t SwapWithRandomInBucket(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng);
 
-        // TODO: Attributes
+        // Constants
+        static const std::size_t kMaxEvictions_;
+
+        // Attributes
+        std::vector<std::vector<uint32_t>> buckets_; // TODO: Can be flattened
+        std::unique_ptr<Segment> overflow_;
 };
 
 #endif

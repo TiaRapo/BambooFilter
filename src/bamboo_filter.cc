@@ -12,23 +12,40 @@
 
 BambooFilter::BambooFilter(uint32_t capacity /*TODO*/) // TODO
         : kSeed_(static_cast<std::uint32_t>(std::random_device{}())),
-        kNumBitsInitialTable_((std::uint32_t)ceil(log2((double)(capacity / 4.0)))) {
+        kNumBitsInitialTable_((std::uint32_t)ceil(log2(static_cast<double>(capacity) / 4.0))), 
+        num_elems_(0) {
+    // Placing the initialization of variables that depend on the initialization of other variables in constructor body ...
+    // ... because it depends on the declaration order in class which is risky
     num_bits_table_ = kNumBitsInitialTable_;
+    rng_.seed(kSeed_);
 }
 
 BambooFilter::~BambooFilter() {
     // TODO ?
 }
 
+std::size_t BambooFilter::GetNumElems() const noexcept {
+    return num_elems_;
+}
+
+// TODO: Test
 bool BambooFilter::Insert(std::span<const std::byte> elem) {
     uint32_t hash = wyhash(elem.data(), elem.size(), kSeed_, _wyp);
 
     uint32_t fingerprint = (hash >> kNumBitsInitialTable_) & kMaskFingerprint;
     uint32_t index_bucket = hash & kMaskBucket;
-    uint32_t index_bucket_other = (index_bucket ^ fingerprint) & kMaskBucket;
     uint32_t index_segment = (hash >> kNumBitsBucket) & (num_bits_table_ - kNumBitsBucket);
 
-    // TODO ...
+    if (!segments_[index_segment]->Insert(fingerprint, index_bucket, rng_)) { // Couldn't find free spot for entry
+        segments_[index_segment]->GetOverflow()->Insert(fingerprint, index_bucket, rng_); // TODO: Should it recursively go down?
+    }
+
+    if (!(num_elems_ & (kResizingThreshold - 1))) { // If num_elems_ is a multiple of threshold
+        Expand();
+    }
+
+    num_elems_++;
+    return true;
 }
 
 bool BambooFilter::Lookup(std::span<const std::byte> elem) const {
@@ -39,7 +56,7 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
     // TODO
 }
 
-void BambooFilter::Extend() {
+void BambooFilter::Expand() {
     // TODO
 }
 

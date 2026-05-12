@@ -11,7 +11,7 @@ TODO
 - C++20 standard
 - CMake >= 3.10
 
-## Compiling
+## Building
 ``` sh
 cd build
 cmake ..
