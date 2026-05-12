@@ -4,12 +4,15 @@
 #include <cstdint>
 #include <random>
 #include <vector>
+#include <memory>
 
 class Segment {
     public:
         Segment(/*TODO*/);
 
         ~Segment();
+
+        [[nodiscard]] Segment* GetOverflow() noexcept;
 
         bool Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng);
         bool Lookup(/*TODO*/) const;
@@ -18,15 +21,16 @@ class Segment {
 
     private:
         // Internal helper functions
-        [[nodiscard]] inline uint32_t get_other_bucket(uint32_t index_bucket, uint32_t fingerprint); 
-        inline bool insert_in_bucket(uint32_t fingerprint, uint32_t index_bucket);
-        [[nodiscard]] inline uint32_t swap_with_random_in_bucket(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng);
+        [[nodiscard]] inline uint32_t GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) const; 
+        inline bool InsertInBucket(uint32_t fingerprint, uint32_t index_bucket);
+        [[nodiscard]] inline uint32_t SwapWithRandomInBucket(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng);
 
         // Constants
         static const std::size_t kMaxEvictions_;
 
         // Attributes
         std::vector<std::vector<uint32_t>> buckets_; // TODO: Can be flattened
+        std::unique_ptr<Segment> overflow_;
 };
 
 #endif

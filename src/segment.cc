@@ -5,12 +5,17 @@
 #include "utility.h"
 #include "config.h"
 
-Segment::Segment(/*TODO*/) {
-    // TODO
+Segment::Segment(/*TODO*/)
+        : buckets_(kNumBitsBucket, std::vector<uint32_t>(kFingerprintsPerBucket, -1)) {
+    // TODO ?
 }
 
 Segment::~Segment() {
     // TODO ?
+}
+
+[[nodiscard]] Segment* Segment::GetOverflow() noexcept {
+    return overflow_.get();
 }
 
 // TODO:
@@ -19,9 +24,9 @@ Segment::~Segment() {
 // But putting it as static between segments is not good practice
 // Maybe find a different way to pick a random entry
 bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng) {
-    uint32_t index_bucket_other = get_other_bucket(index_bucket, fingerprint);
+    uint32_t index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
 
-    if (insert_in_bucket(fingerprint, index_bucket) || insert_in_bucket(fingerprint, index_bucket)) {
+    if (InsertInBucket(fingerprint, index_bucket) || InsertInBucket(fingerprint, index_bucket)) {
         return true;
     }
 
@@ -30,9 +35,9 @@ bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &
     }
 
     for (std::size_t i = 0 ; i < kMaxEvictions_ ; i++) {
-        fingerprint = swap_with_random_in_bucket(fingerprint, index_bucket, rng);
-        index_bucket = get_other_bucket(index_bucket, fingerprint);
-        if (insert_in_bucket(fingerprint, index_bucket)) {
+        fingerprint = SwapWithRandomInBucket(fingerprint, index_bucket, rng);
+        index_bucket = GetOtherBucket(index_bucket, fingerprint);
+        if (InsertInBucket(fingerprint, index_bucket)) {
             return true;
         }
     }
@@ -48,21 +53,21 @@ bool Segment::Delete() {
     // TODO
 }
 
-[[nodiscard]] inline uint32_t get_other_bucket(uint32_t index_bucket, uint32_t fingerprint) {
+[[nodiscard]] inline uint32_t GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) {
     return (index_bucket ^ fingerprint) & kMaskBucket;
 }
 
-inline bool Segment::insert_in_bucket(uint32_t fingerprint, uint32_t index_bucket) {
+inline bool Segment::InsertInBucket(uint32_t fingerprint, uint32_t index_bucket) {
     for (auto &entry : buckets_[index_bucket]) {
-        if (entry == 0) { // TODO: 0 does not mean empty probably
+        if (entry == -1) {
             entry = fingerprint;
             return true;
         }
     }
 }
 
-inline uint32_t Segment::swap_with_random_in_bucket(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng) {
-    uint32_t entry_index = rng(); // TODO: Not like this
+[[nodiscard]] inline uint32_t Segment::SwapWithRandomInBucket(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng) {
+    uint32_t entry_index = rng() % kFingerprintsPerBucket;
     uint32_t taken = buckets_[index_bucket][entry_index];
     buckets_[index_bucket][entry_index] = fingerprint;
     return taken;

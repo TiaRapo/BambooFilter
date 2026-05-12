@@ -16,6 +16,8 @@ class BambooFilter {
 
         ~BambooFilter();
 
+        std::size_t GetNumElems() const noexcept;
+
         bool Insert(std::span<const std::byte> elem);
         bool Lookup(std::span<const std::byte> elem) const;
         bool Delete(std::span<const std::byte> elem);
@@ -32,6 +34,7 @@ class BambooFilter {
         // Attributes
         std::vector<std::unique_ptr<Segment>> segments_;
         std::size_t num_bits_table_;
+        std::size_t num_elems_;
 
         // Helpers
         std::mt19937 rng_;
