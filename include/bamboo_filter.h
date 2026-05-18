@@ -32,7 +32,7 @@ class BambooFilter {
         const std::uint32_t kSeed_;
 
         // Attributes
-        std::vector<std::unique_ptr<Segment>> segments_;
+        std::vector<Segment*> segments_;
         std::size_t num_bits_table_;
         std::size_t num_elems_;
 
