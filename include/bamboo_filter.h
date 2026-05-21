@@ -26,6 +26,7 @@ class BambooFilter {
 
     private:
         // TODO: Internal helper functions ?
+        void CalculateIndices(std::span<const std::byte> elem, uint32_t &fingerprint, uint32_t &index_bucket, uint32_t &index_segment) const;
 
         // Constants
         const std::size_t kNumBitsInitialTable_; // Bucket bit count + initial segment bit count

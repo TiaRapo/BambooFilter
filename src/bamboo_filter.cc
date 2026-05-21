@@ -29,13 +29,18 @@ std::size_t BambooFilter::GetNumElems() const noexcept {
     return num_elems_;
 }
 
-// TODO: Test
-bool BambooFilter::Insert(std::span<const std::byte> elem) {
+void BambooFilter::CalculateIndices(std::span<const std::byte> elem, uint32_t &fingerprint, uint32_t &index_bucket, uint32_t &index_segment) const {
     uint32_t hash = wyhash(elem.data(), elem.size(), kSeed_, _wyp);
 
-    uint32_t fingerprint = (hash >> kNumBitsInitialTable_) & kMaskFingerprint;
-    uint32_t index_bucket = hash & kMaskBucket;
-    uint32_t index_segment = (hash >> kNumBitsBucket) & (num_bits_table_ - kNumBitsBucket);
+    fingerprint = (hash >> kNumBitsInitialTable_) & kMaskFingerprint;
+    index_bucket = hash & kMaskBucket;
+    index_segment = (hash >> kNumBitsBucket) & (num_bits_table_ - kNumBitsBucket);
+}
+
+// TODO: Test
+bool BambooFilter::Insert(std::span<const std::byte> elem) {
+    uint32_t fingerprint, index_bucket, index_segment;
+    CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
     if (!segments_[index_segment]->Insert(fingerprint, index_bucket, rng_)) { // Couldn't find free spot for entry
         segments_[index_segment]->GetOverflow()->Insert(fingerprint, index_bucket, rng_); // TODO: Should it recursively go down?
@@ -50,11 +55,36 @@ bool BambooFilter::Insert(std::span<const std::byte> elem) {
 }
 
 bool BambooFilter::Lookup(std::span<const std::byte> elem) const {
-    // TODO
+    uint32_t fingerprint, index_bucket, index_segment;
+    CalculateIndices(elem, fingerprint, index_bucket, index_segment);
+
+    if (segments_[index_segment]->Lookup(fingerprint, index_bucket)) return true;   // Lookup current segment
+
+    if (segments_[index_segment]->GetOverflow()) return segments_[index_segment]->GetOverflow()->Lookup(fingerprint, index_bucket); // Lookup overflow segment
+
+    return false;
 }
 
 bool BambooFilter::Delete(std::span<const std::byte> elem) {
-    // TODO
+    uint32_t fingerprint, index_bucket, index_segment;
+    CalculateIndices(elem, fingerprint, index_bucket, index_segment);
+
+    bool elem_found = segments_[index_segment]->Lookup(fingerprint, index_bucket);
+    bool deleted = false;
+
+    if (elem_found) {
+        deleted = segments_[index_segment]->Delete(fingerprint, index_bucket);    // Delete from found bucket
+
+        if (!deleted && segments_[index_segment]->GetOverflow()) deleted = segments_[index_segment]->Delete(fingerprint, index_bucket); // Delete from overflow
+
+        if (deleted) num_elems_--;
+
+        if (!(num_elems_ & (kResizingThreshold - 1))) { // If num_elems_ is a multiple of threshold
+        Compress();
+    }
+    }
+
+    return deleted;
 }
 
 bool BambooFilter::Expand() {

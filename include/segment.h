@@ -16,8 +16,8 @@ class Segment {
         [[nodiscard]] Segment* GetOverflow() noexcept;
 
         bool Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng);
-        bool Lookup(/*TODO*/) const;
-        bool Delete(/*TODO*/);
+        bool Lookup(uint32_t fingerprint, uint32_t index_bucket) const;
+        bool Delete(uint32_t fingerprint, uint32_t index_bucket);
         // TODO: Probably needs more public functions
         bool EraseByBit(bool bit_value, std::uint32_t bit_index);
 
@@ -32,7 +32,7 @@ class Segment {
 
         // Attributes
         std::vector<std::vector<uint32_t>> buckets_; // TODO: Can be flattened
-        std::unique_ptr<Segment> overflow_;
+        Segment* overflow_;
 };
 
 #endif

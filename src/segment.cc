@@ -19,7 +19,7 @@ Segment::~Segment() {
 }
 
 [[nodiscard]] Segment* Segment::GetOverflow() noexcept {
-    return overflow_.get();
+    return overflow_;
 }
 
 // TODO:
@@ -49,11 +49,11 @@ bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &
     return false;
 }
 
-bool Segment::Lookup() const {
+bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
     // TODO
 }
 
-bool Segment::Delete() {
+bool Segment::Delete(uint32_t fingerprint, uint32_t index_bucket) {
     // TODO
 }
 
