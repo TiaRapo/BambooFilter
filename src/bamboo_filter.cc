@@ -70,8 +70,7 @@ bool BambooFilter::Expand() {
 
     index_split_sgm_++;
 
-    // TODO: Replace the stand-in with the initial number of segments 
-    // if (index_split_sgm_ == (pow(2, round) * INITIAL_NUM_SEGMENTS)) index_split_sgm_ = 0;
+    if (index_split_sgm_ == (pow(2, ceil(log2(segments_.size()))))) index_split_sgm_ = 0;
     return true;
 }
 
