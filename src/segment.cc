@@ -10,6 +10,10 @@ Segment::Segment(/*TODO*/)
     // TODO ?
 }
 
+Segment::Segment(Segment* original) {
+    // TODO
+}
+
 Segment::~Segment() {
     // TODO ?
 }
@@ -50,6 +54,10 @@ bool Segment::Lookup() const {
 }
 
 bool Segment::Delete() {
+    // TODO
+}
+
+bool Segment::EraseByBit(bool bit_value, std::uint32_t bit_index) {
     // TODO
 }
 

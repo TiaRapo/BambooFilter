@@ -9,6 +9,7 @@
 class Segment {
     public:
         Segment(/*TODO*/);
+        Segment(Segment* original);
 
         ~Segment();
 
@@ -18,6 +19,7 @@ class Segment {
         bool Lookup(/*TODO*/) const;
         bool Delete(/*TODO*/);
         // TODO: Probably needs more public functions
+        bool EraseByBit(bool bit_value, std::uint32_t bit_index);
 
     private:
         // Internal helper functions

@@ -21,7 +21,7 @@ class BambooFilter {
         bool Insert(std::span<const std::byte> elem);
         bool Lookup(std::span<const std::byte> elem) const;
         bool Delete(std::span<const std::byte> elem);
-        void Expand();
+        bool Expand();
         void Compress();
 
     private:
@@ -32,9 +32,10 @@ class BambooFilter {
         const std::uint32_t kSeed_;
 
         // Attributes
-        std::vector<Segment*> segments_;
-        std::size_t num_bits_table_;
-        std::size_t num_elems_;
+        std::vector<Segment*> segments_;    // Segments
+        std::size_t num_bits_table_;        // Bucket bit count + segment bit count
+        std::size_t num_elems_;             // Number of elements
+        std::uint32_t index_split_sgm_;     // Index of the segment that will be splitted next
 
         // Helpers
         std::mt19937 rng_;
