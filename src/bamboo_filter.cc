@@ -42,8 +42,9 @@ bool BambooFilter::Insert(std::span<const std::byte> elem) {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
-    if (!segments_[index_segment]->Insert(fingerprint, index_bucket, rng_)) { // Couldn't find free spot for entry
-        segments_[index_segment]->GetOverflow()->Insert(fingerprint, index_bucket, rng_); // TODO: Should it recursively go down?
+    Segment* segment = segments_[index_segment];
+    while (!segment->Insert(fingerprint, index_bucket, rng_)) { // Couldn't find free spot for entry
+        segment = segment->GetOverflow();
     }
 
     if (!(num_elems_ & (kResizingThreshold - 1))) { // If num_elems_ is a multiple of threshold
@@ -73,7 +74,7 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
     bool deleted = false;
 
     if (elem_found) {
-        deleted = segments_[index_segment]->Delete(fingerprint, index_bucket);    // Delete from found bucket
+        deleted = segments_[index_segment]->Delete(fingerprint, index_bucket); // Delete from found bucket
 
         if (!deleted && segments_[index_segment]->GetOverflow()) deleted = segments_[index_segment]->Delete(fingerprint, index_bucket); // Delete from overflow
 

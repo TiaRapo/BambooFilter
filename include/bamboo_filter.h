@@ -25,7 +25,7 @@ class BambooFilter {
         void Compress();
 
     private:
-        // TODO: Internal helper functions ?
+        // Internal helper functions
         void CalculateIndices(std::span<const std::byte> elem, uint32_t &fingerprint, uint32_t &index_bucket, uint32_t &index_segment) const;
 
         // Constants
