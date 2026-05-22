@@ -16,6 +16,7 @@ class Segment {
         [[nodiscard]] Segment* GetOverflow() noexcept;
 
         bool Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng);
+        bool Insert(Segment& other);
         bool Lookup(uint32_t fingerprint, uint32_t index_bucket) const;
         bool Delete(uint32_t fingerprint, uint32_t index_bucket);
         // TODO: Probably needs more public functions

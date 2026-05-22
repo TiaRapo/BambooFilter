@@ -6,7 +6,7 @@
 #include "config.h"
 
 Segment::Segment(/*TODO*/)
-        : buckets_(kNumBitsBucket, std::vector<uint32_t>(kFingerprintsPerBucket, -1)) {
+        : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>(kFingerprintsPerBucket, -1)) {
     // TODO ?
 }
 
@@ -49,6 +49,14 @@ bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &
     return false;
 }
 
+bool Segment::Insert(Segment& other) {
+    for (auto bucket : other.buckets_) {
+        for (auto fingerprint : bucket) {
+            // TODO: Call insert per fingerprint or can we easily map it?
+        }
+    }
+}
+
 bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
     // TODO
 }
@@ -61,7 +69,7 @@ bool Segment::EraseByBit(bool bit_value, std::uint32_t bit_index) {
     // TODO
 }
 
-[[nodiscard]] inline uint32_t GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) {
+[[nodiscard]] inline uint32_t Segment::GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) const {
     return (index_bucket ^ fingerprint) & kMaskBucket;
 }
 

@@ -22,7 +22,9 @@ BambooFilter::BambooFilter(uint32_t capacity /*TODO*/) // TODO
 }
 
 BambooFilter::~BambooFilter() {
-    // TODO ?
+    for (Segment* s : segments_) {
+        delete s;
+    }
 }
 
 std::size_t BambooFilter::GetNumElems() const noexcept {
@@ -59,9 +61,13 @@ bool BambooFilter::Lookup(std::span<const std::byte> elem) const {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
-    if (segments_[index_segment]->Lookup(fingerprint, index_bucket)) return true;   // Lookup current segment
+    if (segments_[index_segment]->Lookup(fingerprint, index_bucket)) {
+        return true;   // Lookup current segment
+    }
 
-    if (segments_[index_segment]->GetOverflow()) return segments_[index_segment]->GetOverflow()->Lookup(fingerprint, index_bucket); // Lookup overflow segment
+    if (segments_[index_segment]->GetOverflow()) {
+        return segments_[index_segment]->GetOverflow()->Lookup(fingerprint, index_bucket); // Lookup overflow segment
+    }
 
     return false;
 }
@@ -76,19 +82,23 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
     if (elem_found) {
         deleted = segments_[index_segment]->Delete(fingerprint, index_bucket); // Delete from found bucket
 
-        if (!deleted && segments_[index_segment]->GetOverflow()) deleted = segments_[index_segment]->Delete(fingerprint, index_bucket); // Delete from overflow
+        if (!deleted && segments_[index_segment]->GetOverflow()) {
+            deleted = segments_[index_segment]->Delete(fingerprint, index_bucket); // Delete from overflow
+        }
 
-        if (deleted) num_elems_--;
+        if (deleted) {
+            num_elems_--;
+        }
 
         if (!(num_elems_ & (kResizingThreshold - 1))) { // If num_elems_ is a multiple of threshold
-        Compress();
-    }
+            Compress();
+        }
     }
 
     return deleted;
 }
 
-bool BambooFilter::Expand() {
+void BambooFilter::Expand() {
     // Copy the splitting segment and add it to the filter
     Segment* orig_segment = segments_[index_split_sgm_];
     Segment* splt_segment = new Segment(orig_segment);
@@ -101,10 +111,24 @@ bool BambooFilter::Expand() {
 
     index_split_sgm_++;
 
-    if (index_split_sgm_ == (pow(2, ceil(log2(segments_.size()))))) index_split_sgm_ = 0;
-    return true;
+    if (index_split_sgm_ == (pow(2, ceil(log2(segments_.size()))))) {
+        index_split_sgm_ = 0;
+    }
 }
 
 void BambooFilter::Compress() {
-    // TODO
+    if (index_split_sgm_ == 0) {
+        index_split_sgm_ = (pow(2, ceil(log2(segments_.size())))) - 1;
+    } else {
+        index_split_sgm_--;
+    }
+
+    Segment* segment_dst = segments_[index_split_sgm_];
+    Segment* segment_src = segments_.back();
+
+    std::uint32_t round = num_bits_table_ - kNumBitsInitialTable_;
+
+    segment_dst->Insert(*segment_src);
+    segments_.pop_back();
+    delete segment_src; 
 }
