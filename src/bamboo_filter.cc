@@ -3,6 +3,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <random>
+#include <vector>
+#include <memory>
 #include <cmath>
 
 #include "config.h"
@@ -10,7 +13,16 @@
 #include "utility.h"
 #include "wyhash.h"
 
-BambooFilter::BambooFilter(uint32_t capacity /*TODO*/) // TODO
+std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
+    for (std::size_t i = 0 ; i < bf.segments_.size() ; i++) {
+        os << "Segment " << i << '\n';
+        os << bf.segments_[i];
+    }
+
+    return os;
+}
+
+BambooFilter::BambooFilter(uint32_t capacity /*TODO?*/)
         : kSeed_(static_cast<std::uint32_t>(std::random_device{}())),
         kNumBitsInitialTable_((std::uint32_t)ceil(log2(static_cast<double>(capacity) / 4.0))), // TODO: Explain this
         num_elems_(0),

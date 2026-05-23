@@ -7,10 +7,14 @@
 #include <random>
 #include <vector>
 #include <memory>
+#include <iostream>
+#include <string>
 
 #include "segment.h"
 
 class BambooFilter {
+    friend std::ostream& operator<<(std::ostream& os, const BambooFilter& bf);
+
     public:
         BambooFilter(uint32_t capacity /*TODO*/);
 

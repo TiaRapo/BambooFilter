@@ -1,9 +1,23 @@
 #include "segment.h"
 
+#include <cstdint>
 #include <random>
+#include <vector>
+#include <memory>
 
 #include "utility.h"
 #include "config.h"
+
+std::ostream& operator<<(std::ostream& os, const Segment& s) {
+    for (std::size_t i = 0 ; i < kBucketsPerSegment ; i++) {
+        os << "\tBucket " << i << '\n';
+        for (std::size_t j = 0 ; j < kFingerprintsPerBucket ; j++) {
+            os << "\t\t" << s.buckets_[i][j] << '\n';
+        }
+    }
+
+    return os;
+}
 
 Segment::Segment(/*TODO?*/)
         : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>(kFingerprintsPerBucket, kEmptyFingerprint)),

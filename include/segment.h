@@ -5,8 +5,12 @@
 #include <random>
 #include <vector>
 #include <memory>
+#include <iostream>
+#include <string>
 
 class Segment {
+    friend std::ostream& operator<<(std::ostream& os, const Segment& s);
+    
     public:
         Segment(/*TODO?*/);
         Segment(Segment* original);
@@ -20,7 +24,7 @@ class Segment {
         bool Delete(uint32_t fingerprint, uint32_t index_bucket);
         void EraseByBit(bool bit_value, std::uint32_t bit_index);
         
-        private:
+    private:
         // Internal helper functions
         inline bool InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937& rng);
         void AddOverflow();
