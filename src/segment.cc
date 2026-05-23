@@ -97,9 +97,23 @@ bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
 }
 
 bool Segment::Delete(uint32_t fingerprint, uint32_t index_bucket) {
-    // TODO
-    // Make sure to check other bucket as well
-    // Do lookup here
+    for (auto &entry : buckets_[index_bucket]) {
+        if (entry == fingerprint) {
+            entry = kEmptyFingerprint;
+            return true;
+        }
+    }
+    
+    uint32_t index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
+
+    for (auto &entry : buckets_[index_bucket_other]) {
+        if (entry == fingerprint) {
+            entry = kEmptyFingerprint;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void Segment::EraseByBit(bool bit_value, std::uint32_t bit_index) {
