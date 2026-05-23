@@ -27,33 +27,38 @@ BambooFilter::~BambooFilter() {
     }
 }
 
-std::size_t BambooFilter::GetNumElems() const noexcept {
+[[nodiscard]] std::size_t BambooFilter::GetNumElems() const noexcept {
     return num_elems_;
 }
 
-void BambooFilter::CalculateIndices(std::span<const std::byte> elem, uint32_t &fingerprint, uint32_t &index_bucket, uint32_t &index_segment) const {
-    uint32_t hash = wyhash(elem.data(), elem.size(), kSeed_, _wyp);
-
-    fingerprint = (hash >> kNumBitsInitialTable_) & kMaskFingerprint;
-    index_bucket = hash & kMaskBucket;
-    index_segment = (hash >> kNumBitsBucket) & (num_bits_table_ - kNumBitsBucket);
-}
-
-// TODO: Test
 bool BambooFilter::Insert(std::span<const std::byte> elem) {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
     Segment* segment = segments_[index_segment];
-    while (!segment->Insert(fingerprint, index_bucket, rng_)) { // Couldn't find free spot for entry
-        segment = segment->GetOverflow();
+
+    while (true) {
+        if (segment->Insert(fingerprint, index_bucket, rng_)) {
+            break;
+        }
+
+        Segment* overflow = segment->GetOverflow();
+        if (overflow == nullptr) {
+            segment->AddOverflow();
+            segment = segment->GetOverflow();
+            segment->Insert(fingerprint, index_bucket, rng_);
+            break;
+        }
+
+        segment = overflow;
     }
 
+    num_elems_++;
+    
     if (!(num_elems_ & (kResizingThreshold - 1))) { // If num_elems_ is a multiple of threshold
         Expand();
     }
 
-    num_elems_++;
     return true;
 }
 
@@ -61,12 +66,10 @@ bool BambooFilter::Lookup(std::span<const std::byte> elem) const {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
-    if (segments_[index_segment]->Lookup(fingerprint, index_bucket)) {
-        return true;   // Lookup current segment
-    }
-
-    if (segments_[index_segment]->GetOverflow()) {
-        return segments_[index_segment]->GetOverflow()->Lookup(fingerprint, index_bucket); // Lookup overflow segment
+    for (Segment* segment = segments_[index_segment] ; segment != nullptr ; segment = segment->GetOverflow()) {
+        if (segment->Lookup(fingerprint, index_bucket)) {
+            return true;
+        }
     }
 
     return false;
@@ -76,23 +79,23 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
-    bool elem_found = segments_[index_segment]->Lookup(fingerprint, index_bucket);
     bool deleted = false;
 
-    if (elem_found) {
-        deleted = segments_[index_segment]->Delete(fingerprint, index_bucket); // Delete from found bucket
+    Segment* segment = segments_[index_segment];
 
-        if (!deleted && segments_[index_segment]->GetOverflow()) {
-            deleted = segments_[index_segment]->Delete(fingerprint, index_bucket); // Delete from overflow
+    for (Segment* segment = segments_[index_segment] ; segment != nullptr ; segment = segment->GetOverflow()) {
+        if (segment->Delete(fingerprint, index_bucket)) {
+            deleted = true;
+            break;
         }
+    }
 
-        if (deleted) {
-            num_elems_--;
-        }
-
+    if (deleted) {
         if (!(num_elems_ & (kResizingThreshold - 1))) { // If num_elems_ is a multiple of threshold
             Compress();
         }
+
+        num_elems_--;
     }
 
     return deleted;
@@ -131,4 +134,12 @@ void BambooFilter::Compress() {
     segment_dst->Insert(*segment_src);
     segments_.pop_back();
     delete segment_src; 
+}
+
+void BambooFilter::CalculateIndices(std::span<const std::byte> elem, uint32_t &fingerprint, uint32_t &index_bucket, uint32_t &index_segment) const {
+    uint32_t hash = wyhash(elem.data(), elem.size(), kSeed_, _wyp);
+
+    fingerprint = (hash >> kNumBitsInitialTable_) & kMaskFingerprint;
+    index_bucket = hash & kMaskBucket;
+    index_segment = (hash >> kNumBitsBucket) & (num_bits_table_ - kNumBitsBucket);
 }

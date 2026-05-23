@@ -16,16 +16,16 @@ class BambooFilter {
 
         ~BambooFilter();
 
-        std::size_t GetNumElems() const noexcept;
+        [[nodiscard]] std::size_t GetNumElems() const noexcept;
 
         bool Insert(std::span<const std::byte> elem);
         bool Lookup(std::span<const std::byte> elem) const;
         bool Delete(std::span<const std::byte> elem);
-        void Expand();
-        void Compress();
-
+        
     private:
         // Internal helper functions
+        void Expand();
+        void Compress();
         void CalculateIndices(std::span<const std::byte> elem, uint32_t &fingerprint, uint32_t &index_bucket, uint32_t &index_segment) const;
 
         // Constants

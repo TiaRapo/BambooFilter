@@ -8,18 +8,17 @@
 
 class Segment {
     public:
-        Segment(/*TODO*/);
+        Segment(/*TODO?*/);
         Segment(Segment* original);
 
         ~Segment();
 
-        [[nodiscard]] Segment* GetOverflow() noexcept;
-
+        [[nodiscard]] Segment* GetOverflow() const noexcept;
+        void AddOverflow();
         bool Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng);
         bool Insert(Segment& other);
         bool Lookup(uint32_t fingerprint, uint32_t index_bucket) const;
         bool Delete(uint32_t fingerprint, uint32_t index_bucket);
-        // TODO: Probably needs more public functions
         bool EraseByBit(bool bit_value, std::uint32_t bit_index);
 
     private:

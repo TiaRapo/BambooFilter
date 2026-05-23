@@ -5,8 +5,9 @@
 #include "utility.h"
 #include "config.h"
 
-Segment::Segment(/*TODO*/)
-        : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>(kFingerprintsPerBucket, -1)) {
+Segment::Segment(/*TODO?*/)
+        : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>(kFingerprintsPerBucket, -1)),
+        overflow_(nullptr) {
     // TODO ?
 }
 
@@ -18,8 +19,12 @@ Segment::~Segment() {
     // TODO ?
 }
 
-[[nodiscard]] Segment* Segment::GetOverflow() noexcept {
+[[nodiscard]] Segment* Segment::GetOverflow() const noexcept {
     return overflow_;
+}
+
+void Segment::AddOverflow() {
+    overflow_ = new Segment();
 }
 
 // TODO:
@@ -59,10 +64,13 @@ bool Segment::Insert(Segment& other) {
 
 bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
     // TODO
+    // Make sure to check other bucket as well
 }
 
 bool Segment::Delete(uint32_t fingerprint, uint32_t index_bucket) {
     // TODO
+    // Make sure to check other bucket as well
+    // Do lookup here
 }
 
 bool Segment::EraseByBit(bool bit_value, std::uint32_t bit_index) {
