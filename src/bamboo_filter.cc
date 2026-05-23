@@ -7,6 +7,7 @@
 #include <vector>
 #include <memory>
 #include <cmath>
+#include <inttypes.h>
 
 #include "config.h"
 #include "segment.h"
@@ -23,14 +24,23 @@ std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
 }
 
 BambooFilter::BambooFilter(uint32_t capacity /*TODO?*/)
-        : kSeed_(static_cast<std::uint32_t>(std::random_device{}())),
-        kNumBitsInitialTable_((std::uint32_t)ceil(log2(static_cast<double>(capacity) / 4.0))), // TODO: Explain this
+        : kNumBitsInitialTable_(std::max((size_t)ceil(log2(static_cast<double>(capacity) / 4.0)), kNumBitsBucket+1)),
+        kSeed_(static_cast<std::uint32_t>(std::random_device{}())),
         num_elems_(0),
         index_split_sgm_(0u) {
     // Placing the initialization of variables that depend on the initialization of other variables in constructor body ...
     // ... because it depends on the declaration order in class which is risky
     num_bits_table_ = kNumBitsInitialTable_;
     rng_.seed(kSeed_);
+
+    for (int i=0; i < (int)(1 << (kNumBitsInitialTable_-kNumBitsBucket)); i++) {
+        segments_.push_back(new Segment());
+    }
+
+    // std::cout << "Table bits: " << (int)kNumBitsInitialTable_ << "\n";
+    // std::cout << "Bits per bucket: " << (int)kNumBitsBucket << "\n";
+    // std::cout << "Bits per segment: " << (int)(kNumBitsInitialTable_-kNumBitsBucket) << "\n";
+    // std::cout << "Max num of segments: " << (int)(1 << (kNumBitsInitialTable_-kNumBitsBucket)) << "\n";
 }
 
 BambooFilter::~BambooFilter() {
