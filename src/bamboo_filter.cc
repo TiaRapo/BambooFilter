@@ -14,7 +14,7 @@ BambooFilter::BambooFilter(uint32_t capacity /*TODO*/) // TODO
         : kSeed_(static_cast<std::uint32_t>(std::random_device{}())),
         kNumBitsInitialTable_((std::uint32_t)ceil(log2(static_cast<double>(capacity) / 4.0))), // TODO: Explain this
         num_elems_(0),
-        index_split_sgm_(0) {
+        index_split_sgm_(0u) {
     // Placing the initialization of variables that depend on the initialization of other variables in constructor body ...
     // ... because it depends on the declaration order in class which is risky
     num_bits_table_ = kNumBitsInitialTable_;
@@ -114,14 +114,14 @@ void BambooFilter::Expand() {
 
     index_split_sgm_++;
 
-    if (index_split_sgm_ == (pow(2, ceil(log2(segments_.size()))))) {
-        index_split_sgm_ = 0;
+    if (index_split_sgm_ == (pow(2, ceil(log2(segments_.size()))))) { // TODO: Working with whole numbers... check if precise... maybe write bit ver
+        index_split_sgm_ = 0u;
     }
 }
 
 void BambooFilter::Compress() {
-    if (index_split_sgm_ == 0) {
-        index_split_sgm_ = (pow(2, ceil(log2(segments_.size())))) - 1;
+    if (index_split_sgm_ == 0u) {
+        index_split_sgm_ = (pow(2, ceil(log2(segments_.size())))) - 1u; // TODO: Working with whole numbers... check if precise... maybe write bit ver
     } else {
         index_split_sgm_--;
     }

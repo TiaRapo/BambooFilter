@@ -74,7 +74,15 @@ bool Segment::Delete(uint32_t fingerprint, uint32_t index_bucket) {
 }
 
 bool Segment::EraseByBit(bool bit_value, std::uint32_t bit_index) {
-    // TODO
+    for (auto &bucket : buckets_) {
+        for (auto &entry : bucket) {
+            bool bit_is_set = (entry & (1u << bit_index)) != 0u;
+            
+            if (bit_is_set == bit_value) {
+                entry = kEmptyFingerprint;
+            }
+        }
+    }
 }
 
 [[nodiscard]] inline uint32_t Segment::GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) const {
