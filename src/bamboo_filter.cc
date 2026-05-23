@@ -35,23 +35,7 @@ bool BambooFilter::Insert(std::span<const std::byte> elem) {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
-    Segment* segment = segments_[index_segment];
-
-    while (true) {
-        if (segment->Insert(fingerprint, index_bucket, rng_)) {
-            break;
-        }
-
-        Segment* overflow = segment->GetOverflow();
-        if (overflow == nullptr) {
-            segment->AddOverflow();
-            segment = segment->GetOverflow();
-            segment->Insert(fingerprint, index_bucket, rng_);
-            break;
-        }
-
-        segment = overflow;
-    }
+    segments_[index_segment]->Insert(fingerprint, index_bucket, rng_);
 
     num_elems_++;
     
@@ -131,12 +115,12 @@ void BambooFilter::Compress() {
 
     std::uint32_t round = num_bits_table_ - kNumBitsInitialTable_;
 
-    segment_dst->Insert(*segment_src);
+    segment_dst->Insert(*segment_src, rng_);
     segments_.pop_back();
     delete segment_src; 
 }
 
-void BambooFilter::CalculateIndices(std::span<const std::byte> elem, uint32_t &fingerprint, uint32_t &index_bucket, uint32_t &index_segment) const {
+inline void BambooFilter::CalculateIndices(std::span<const std::byte> elem, uint32_t& fingerprint, uint32_t& index_bucket, uint32_t& index_segment) const {
     uint32_t hash = wyhash(elem.data(), elem.size(), kSeed_, _wyp);
 
     fingerprint = (hash >> kNumBitsInitialTable_) & kMaskFingerprint;

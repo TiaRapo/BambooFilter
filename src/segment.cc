@@ -23,23 +23,37 @@ Segment::~Segment() {
     return overflow_;
 }
 
-void Segment::AddOverflow() {
-    overflow_ = new Segment();
-}
-
 // TODO:
 // It might be costly time-wise to always send the RNG
 // Rng is a big element so we don't want each segment to have it's own
 // But putting it as static between segments is not good practice
 // Maybe find a different way to pick a random entry
-bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng) {
+bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& rng) {
     uint32_t index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
 
+    Segment* segment = this;
+    
+    while (true) {
+        if (segment->InsertLocal(fingerprint, index_bucket, index_bucket_other, rng)) {
+            break;
+        }
+
+        Segment* overflow = segment->GetOverflow();
+        if (overflow == nullptr) {
+            segment->AddOverflow();
+            segment = segment->GetOverflow();
+            segment->InsertLocal(fingerprint, index_bucket, index_bucket_other, rng);
+            break;
+        }
+
+        segment = overflow;
+    }
+    
     if (InsertInBucket(fingerprint, index_bucket) || InsertInBucket(fingerprint, index_bucket_other)) {
         return true;
     }
 
-    if (rng() & 1u) { // 50% chance to pick either of the two buckets
+    if (rng() & std::uint32_t{1}) { // 50% chance to pick either of the two buckets
         index_bucket = index_bucket_other;
     }
 
@@ -54,35 +68,63 @@ bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &
     return false;
 }
 
-bool Segment::Insert(Segment& other) {
-    for (auto bucket : other.buckets_) {
-        for (auto fingerprint : bucket) {
-            // TODO: Call insert per fingerprint or can we easily map it?
+bool Segment::Insert(Segment& other, std::mt19937& rng) {
+    for (std::size_t i = 0 ; i < kBucketsPerSegment ; i++) {
+        for (std::size_t j = 0 ; j < kFingerprintsPerBucket ; j++) {
+            Insert(other.buckets_[i][j], i, rng);
         }
     }
+
+    return true;
 }
 
 bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
     // TODO
     // Make sure to check other bucket as well
+    // Probably move overflow lookup from filter to here, avoid recursive calls
 }
 
 bool Segment::Delete(uint32_t fingerprint, uint32_t index_bucket) {
     // TODO
     // Make sure to check other bucket as well
     // Do lookup here
+    // Probably move overflow delete from filter to here, avoid recursive calls
 }
 
 bool Segment::EraseByBit(bool bit_value, std::uint32_t bit_index) {
     for (auto &bucket : buckets_) {
         for (auto &entry : bucket) {
-            bool bit_is_set = (entry & (1u << bit_index)) != 0u;
+            bool bit_is_set = (entry & (std::uint32_t{1} << bit_index)) != std::uint32_t{0};
             
             if (bit_is_set == bit_value) {
                 entry = kEmptyFingerprint;
             }
         }
     }
+}
+
+bool Segment::InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937 &rng) {
+    if (InsertInBucket(fingerprint, index_bucket) || InsertInBucket(fingerprint, index_bucket_other)) {
+        return true;
+    }
+
+    if (rng() & std::uint32_t{1}) { // 50% chance to pick either of the two buckets
+        index_bucket = index_bucket_other;
+    }
+
+    for (std::size_t i = 0 ; i < kMaxEvictions ; i++) {
+        fingerprint = SwapWithRandomInBucket(fingerprint, index_bucket, rng);
+        index_bucket = GetOtherBucket(index_bucket, fingerprint);
+        if (InsertInBucket(fingerprint, index_bucket)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void Segment::AddOverflow() {
+    overflow_ = new Segment();
 }
 
 [[nodiscard]] inline uint32_t Segment::GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) const {
