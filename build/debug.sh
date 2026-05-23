@@ -2,7 +2,5 @@
 
 set -e
 
-cmake -S .. -B build-debug -DCMAKE_BUILD_TYPE=Debug
-cmake --build build-debug
-
-./build-debug/test
+cmake -S . -B build/build-debug -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/build-debug
