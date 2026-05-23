@@ -14,13 +14,21 @@ TODO
 ## Running
 ``` sh
 cd build
-./debug.sh
+./release.sh
 ```
 
 ## Debugging
+Recommended (VSC):
+- Configure launch.json program to `"${workspaceFolder}/build/build-debug/test"`
+- Configure tasks.json command to `"./build/debug.sh"`
+- Be in project root
+- Press F5 (Start Debugging)
+
+... alternatively:
+
 ``` sh
 cd build
-./release.sh
+./debug.sh
 ```
 
 ## Coding Style
