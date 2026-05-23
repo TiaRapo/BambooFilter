@@ -14,6 +14,7 @@
 #include "utility.h"
 #include "wyhash.h"
 
+// TODO: Fix; Mistake in segment printing
 std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
     for (std::size_t i = 0 ; i < bf.segments_.size() ; i++) {
         os << "Segment " << i << '\n';
@@ -68,6 +69,7 @@ bool BambooFilter::Insert(std::span<const std::byte> elem) {
     return true;
 }
 
+// TODO: Fix false positive when bf is empty
 bool BambooFilter::Lookup(std::span<const std::byte> elem) const {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
@@ -81,6 +83,7 @@ bool BambooFilter::Lookup(std::span<const std::byte> elem) const {
     return false;
 }
 
+// TODO: Fix compression criteria
 bool BambooFilter::Delete(std::span<const std::byte> elem) {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
