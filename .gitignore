@@ -2,3 +2,5 @@
 
 build/*
 !build/.gitkeep
+!build/debug.sh
+!build/release.sh

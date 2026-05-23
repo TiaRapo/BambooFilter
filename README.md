@@ -11,11 +11,16 @@ TODO
 - C++20 standard
 - CMake >= 3.10
 
-## Building
+## Running
 ``` sh
 cd build
-cmake ..
-make
+./debug.sh
+```
+
+## Debugging
+``` sh
+cd build
+./release.sh
 ```
 
 ## Coding Style

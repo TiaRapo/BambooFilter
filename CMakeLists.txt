@@ -3,9 +3,6 @@ project(BambooFilterProject LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-
-add_compile_options(-O3 -march=native)
 
 include_directories(include third_party)
 
@@ -17,3 +14,10 @@ set(SOURCES
 )
 
 add_executable(test ${SOURCES})
+
+target_compile_options(test PRIVATE
+    $<$<CONFIG:Release>:-O3 -march=native>
+    $<$<CONFIG:Debug>:-O0 -g>
+)
+
+set_property(TARGET test PROPERTY CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
