@@ -79,19 +79,30 @@ bool Segment::Insert(Segment& other, std::mt19937& rng) {
 }
 
 bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
-    // TODO
-    // Make sure to check other bucket as well
-    // Probably move overflow lookup from filter to here, avoid recursive calls
+    for (auto &entry : buckets_[index_bucket]) {
+        if (entry == fingerprint) {
+            return true;
+        }
+    }
+    
+    uint32_t index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
+
+    for (auto &entry : buckets_[index_bucket_other]) {
+        if (entry == fingerprint) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool Segment::Delete(uint32_t fingerprint, uint32_t index_bucket) {
     // TODO
     // Make sure to check other bucket as well
     // Do lookup here
-    // Probably move overflow delete from filter to here, avoid recursive calls
 }
 
-bool Segment::EraseByBit(bool bit_value, std::uint32_t bit_index) {
+void Segment::EraseByBit(bool bit_value, std::uint32_t bit_index) {
     for (auto &bucket : buckets_) {
         for (auto &entry : bucket) {
             bool bit_is_set = (entry & (std::uint32_t{1} << bit_index)) != std::uint32_t{0};
