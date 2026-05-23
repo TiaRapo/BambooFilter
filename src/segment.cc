@@ -25,8 +25,10 @@ Segment::Segment(/*TODO?*/)
     // TODO ?
 }
 
-Segment::Segment(Segment* original) {
-    // TODO
+Segment::Segment(Segment* original)
+        : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>(kFingerprintsPerBucket, kEmptyFingerprint)),
+        overflow_(nullptr) {
+    buckets_ = original->buckets_;
 }
 
 Segment::~Segment() {
