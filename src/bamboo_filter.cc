@@ -12,7 +12,7 @@
 
 BambooFilter::BambooFilter(uint32_t capacity /*TODO*/) // TODO
         : kSeed_(static_cast<std::uint32_t>(std::random_device{}())),
-        kNumBitsInitialTable_((std::uint32_t)ceil(log2(static_cast<double>(capacity) / 4.0))), 
+        kNumBitsInitialTable_((std::uint32_t)ceil(log2(static_cast<double>(capacity) / 4.0))), // TODO: Explain this
         num_elems_(0),
         index_split_sgm_(0) {
     // Placing the initialization of variables that depend on the initialization of other variables in constructor body ...
@@ -140,6 +140,9 @@ void BambooFilter::CalculateIndices(std::span<const std::byte> elem, uint32_t &f
     uint32_t hash = wyhash(elem.data(), elem.size(), kSeed_, _wyp);
 
     fingerprint = (hash >> kNumBitsInitialTable_) & kMaskFingerprint;
+    if (fingerprint = kEmptyFingerprint) {
+        fingerprint = kEmptyFingerprintReplacement; // TODO: Do we want a better replacement method?
+    }
     index_bucket = hash & kMaskBucket;
     index_segment = (hash >> kNumBitsBucket) & (num_bits_table_ - kNumBitsBucket);
 }

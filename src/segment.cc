@@ -6,7 +6,7 @@
 #include "config.h"
 
 Segment::Segment(/*TODO?*/)
-        : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>(kFingerprintsPerBucket, -1)),
+        : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>(kFingerprintsPerBucket, kEmptyFingerprint)),
         overflow_(nullptr) {
     // TODO ?
 }
@@ -35,7 +35,7 @@ void Segment::AddOverflow() {
 bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng) {
     uint32_t index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
 
-    if (InsertInBucket(fingerprint, index_bucket) || InsertInBucket(fingerprint, index_bucket)) {
+    if (InsertInBucket(fingerprint, index_bucket) || InsertInBucket(fingerprint, index_bucket_other)) {
         return true;
     }
 
@@ -43,7 +43,7 @@ bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &
         index_bucket = index_bucket_other;
     }
 
-    for (std::size_t i = 0 ; i < kMaxEvictions_ ; i++) {
+    for (std::size_t i = 0 ; i < kMaxEvictions ; i++) {
         fingerprint = SwapWithRandomInBucket(fingerprint, index_bucket, rng);
         index_bucket = GetOtherBucket(index_bucket, fingerprint);
         if (InsertInBucket(fingerprint, index_bucket)) {
@@ -83,11 +83,13 @@ bool Segment::EraseByBit(bool bit_value, std::uint32_t bit_index) {
 
 inline bool Segment::InsertInBucket(uint32_t fingerprint, uint32_t index_bucket) {
     for (auto &entry : buckets_[index_bucket]) {
-        if (entry == -1) {
+        if (entry == kEmptyFingerprint) {
             entry = fingerprint;
             return true;
         }
     }
+
+    return false;
 }
 
 [[nodiscard]] inline uint32_t Segment::SwapWithRandomInBucket(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng) {

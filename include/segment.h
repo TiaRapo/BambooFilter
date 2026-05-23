@@ -27,9 +27,6 @@ class Segment {
         inline bool InsertInBucket(uint32_t fingerprint, uint32_t index_bucket);
         [[nodiscard]] inline uint32_t SwapWithRandomInBucket(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng);
 
-        // Constants
-        static const std::size_t kMaxEvictions_;
-
         // Attributes
         std::vector<std::vector<uint32_t>> buckets_; // TODO: Can be flattened
         Segment* overflow_;
