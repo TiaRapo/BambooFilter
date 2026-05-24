@@ -4,3 +4,6 @@ build/*
 !build/.gitkeep
 !build/debug.sh
 !build/release.sh
+
+tests/data/*
+!tests/data/.gitkeep

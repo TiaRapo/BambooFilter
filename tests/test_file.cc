@@ -1,0 +1,33 @@
+#include <iostream>
+#include <cstddef>
+#include <span>
+#include <algorithm>
+
+#include "bamboo_filter.h"
+
+int main(int argc, char* argv[]) {
+    std::cout << "### test_file ###\n";
+
+    // Example BF usage...
+    // TODO: Swap it with proper tests
+
+    BambooFilter* bf = new BambooFilter(1024);
+    std::span<const std::byte> element = std::as_bytes(std::span("test1", 5));
+
+    std::cout << "BF at t0:\n" << *bf << '\n';
+
+    std::cout << "\tTesting lookup (expected 0): " << bf->Lookup(element) << "\n";
+    std::cout << "\tTesting delete (expected 0): " << bf->Delete(element) << "\n";
+
+    std::cout << "\tTesting insert (expected 1): " << bf->Insert(element) << "\n";
+    std::cout << "\tTesting lookup (expected 1): " << bf->Lookup(element) << "\n";
+
+    std::cout << "BF at t1:\n" << *bf << '\n';
+    
+    std::cout << "\tTesting delete (expected 1): " << bf->Delete(element) << "\n";
+    std::cout << "\tTesting lookup (expected 0): " << bf->Lookup(element) << "\n";
+
+    std::cout << "BF at t2:\n" << *bf << '\n';
+
+    return 0;
+}

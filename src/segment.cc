@@ -110,19 +110,18 @@ bool Segment::Delete(uint32_t fingerprint, uint32_t index_bucket) {
 // Ivan & Tia
 void Segment::EraseByBit(bool bit_value, uint32_t bit_index) {
     for (auto &bucket : buckets_) {
-        for (auto &entry : bucket) {
-            bool bit_is_set = (entry & (uint32_t{1} << bit_index)) != uint32_t{0};
-            
-            if (bit_is_set == bit_value) {
-                entry = kEmptyFingerprint;
-            }
-        }
+        bucket.erase(
+            std::remove_if(bucket.begin(), bucket.end(),
+                [bit_value, bit_index](uint32_t entry) {
+                    return ((entry & (uint32_t{1} << bit_index)) != uint32_t{0}) == bit_value;
+                }),
+            bucket.end()
+        );
     }
 }
 
 // Ivan & Tia
 bool Segment::InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937 &rng) {
-    
     if (InsertInBucket(fingerprint, index_bucket) || InsertInBucket(fingerprint, index_bucket_other)) {
         return true;
     }

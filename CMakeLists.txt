@@ -4,20 +4,41 @@ project(BambooFilterProject LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(include third_party)
-
-set(SOURCES
-    src/test.cc # TODO: Remove test.cc from sources
-    src/bamboo_filter.cc
-    src/segment.cc
-    src/utility.cc
+set(LIBRARY_SOURCES
+src/bamboo_filter.cc
+src/segment.cc
+src/utility.cc
 )
 
-add_executable(test ${SOURCES})
+add_executable(test_file
+${LIBRARY_SOURCES}
+tests/test_file.cc
+)
 
-target_compile_options(test PRIVATE
+add_executable(test_random
+${LIBRARY_SOURCES}
+tests/test_random.cc
+)
+
+target_include_directories(test_file PRIVATE
+    include    
+    third_party
+)
+
+target_include_directories(test_random PRIVATE
+    include    
+    third_party
+)
+
+target_compile_options(test_file PRIVATE
     $<$<CONFIG:Release>:-O3 -march=native>
     $<$<CONFIG:Debug>:-O0 -g>
 )
 
-set_property(TARGET test PROPERTY CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+target_compile_options(test_random PRIVATE
+    $<$<CONFIG:Release>:-O3 -march=native>
+    $<$<CONFIG:Debug>:-O0 -g>
+)
+
+set_property(TARGET test_file PROPERTY CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+set_property(TARGET test_random PROPERTY CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
