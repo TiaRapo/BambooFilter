@@ -6,15 +6,13 @@
 #include <random>
 #include <vector>
 #include <memory>
-#include <cmath>
-#include <inttypes.h>
-#include <bitset>
 
 #include "config.h"
 #include "segment.h"
 #include "utility.h"
 #include "wyhash.h"
 
+// Ivan
 std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
     for (size_t i = 0 ; i < bf.segments_.size() ; i++) {
         os << "Segment " << i << '\n';
@@ -24,13 +22,12 @@ std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
     return os;
 }
 
-BambooFilter::BambooFilter(uint32_t capacity /*TODO?*/)
+// Ivan & Tia
+BambooFilter::BambooFilter(uint32_t capacity)
         : kNumBitsInitialTable_(std::max((size_t)ceil(log2(static_cast<double>(capacity) / 4.0)), kNumBitsBucket+1)),
         kSeed_(static_cast<uint32_t>(std::random_device{}())),
         num_elems_(0),
         index_split_sgm_(0u) {
-    // Placing the initialization of variables that depend on the initialization of other variables in constructor body ...
-    // ... because it depends on the declaration order in class which is risky
     num_bits_table_ = kNumBitsInitialTable_;
     rng_.seed(kSeed_);
 
@@ -39,16 +36,19 @@ BambooFilter::BambooFilter(uint32_t capacity /*TODO?*/)
     }
 }
 
+// Ivan
 BambooFilter::~BambooFilter() {
     for (Segment* s : segments_) {
         delete s;
     }
 }
 
+// Ivan
 [[nodiscard]] size_t BambooFilter::GetNumElems() const noexcept {
     return num_elems_;
 }
 
+// Ivan
 bool BambooFilter::Insert(std::span<const std::byte> elem) {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
@@ -57,14 +57,14 @@ bool BambooFilter::Insert(std::span<const std::byte> elem) {
 
     num_elems_++;
     
-    if (!(num_elems_ & (kResizingThreshold - 1))) { // If num_elems_ is a multiple of threshold
+    if (!(num_elems_ & (kResizingThreshold - 1))) {
         Expand();
     }
 
     return true;
 }
 
-// TODO: Fix false positive when bf is empty
+// Tia
 bool BambooFilter::Lookup(std::span<const std::byte> elem) const {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
@@ -78,7 +78,7 @@ bool BambooFilter::Lookup(std::span<const std::byte> elem) const {
     return false;
 }
 
-// TODO: Fix compression criteria
+// Ivan & Tia
 bool BambooFilter::Delete(std::span<const std::byte> elem) {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
@@ -95,7 +95,7 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
     }
 
     if (deleted) {
-        if (!(num_elems_ & (kResizingThreshold - 1))) { // If num_elems_ is a multiple of threshold
+        if (!(num_elems_ & (kResizingThreshold - 1))) {
             Compress();
         }
 
@@ -105,6 +105,7 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
     return deleted;
 }
 
+// Tia
 void BambooFilter::Expand() {
     // Copy the splitting segment and add it to the filter
     Segment* orig_segment = segments_[index_split_sgm_];
@@ -118,14 +119,15 @@ void BambooFilter::Expand() {
 
     index_split_sgm_++;
 
-    if (index_split_sgm_ == (pow(2, ceil(log2(segments_.size()))))) { // TODO: Working with whole numbers... check if precise... maybe write bit ver
+    if (index_split_sgm_ == (1u << (int)ceil(log2(segments_.size())))) {
         index_split_sgm_ = 0u;
     }
 }
 
+// Ivan
 void BambooFilter::Compress() {
     if (index_split_sgm_ == 0u) {
-        index_split_sgm_ = (pow(2, ceil(log2(segments_.size())))) - 1u; // TODO: Working with whole numbers... check if precise... maybe write bit ver
+        index_split_sgm_ = (1u << (int)ceil(log2(segments_.size()))) - 1u;
     } else {
         index_split_sgm_--;
     }
@@ -140,6 +142,7 @@ void BambooFilter::Compress() {
     delete segment_src; 
 }
 
+// Ivan
 inline void BambooFilter::CalculateIndices(std::span<const std::byte> elem, uint32_t& fingerprint, uint32_t& index_bucket, uint32_t& index_segment) const {
     uint32_t hash = wyhash(elem.data(), elem.size(), kSeed_, _wyp);
 

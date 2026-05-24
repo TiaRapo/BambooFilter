@@ -9,6 +9,7 @@
 #include "utility.h"
 #include "config.h"
 
+// Ivan & Tia
 std::ostream& operator<<(std::ostream& os, const Segment& s) {
     for (std::vector<uint32_t> bucket : s.buckets_) {
         if (bucket.empty()) continue;
@@ -21,7 +22,8 @@ std::ostream& operator<<(std::ostream& os, const Segment& s) {
     return os;
 }
 
-Segment::Segment(/*TODO?*/)
+// Ivan & Tia
+Segment::Segment()
         : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>()),
         overflow_(nullptr) {
     for (std::vector<uint32_t> bucket : buckets_) {
@@ -29,25 +31,19 @@ Segment::Segment(/*TODO?*/)
     }
 }
 
+// Tia
 Segment::Segment(Segment* original)
         : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>()),
         overflow_(nullptr) {
     buckets_ = original->buckets_;
 }
 
-Segment::~Segment() {
-    // TODO ?
-}
-
+// Ivan & Tia
 [[nodiscard]] Segment* Segment::GetOverflow() const noexcept {
     return overflow_;
 }
 
-// TODO:
-// It might be costly time-wise to always send the RNG
-// Rng is a big element so we don't want each segment to have it's own
-// But putting it as static between segments is not good practice
-// Maybe find a different way to pick a random entry
+// Ivan & Tia
 bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& rng) {
     uint32_t index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
 
@@ -70,6 +66,7 @@ bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& 
     return false;
 }
 
+// Ivan
 bool Segment::MergeSegment(Segment& other, std::mt19937& rng) {
     for (size_t bucket_index = 0 ; bucket_index < kBucketsPerSegment ; bucket_index++) {
         for (uint32_t fingerprint : other.buckets_[bucket_index]) Insert(fingerprint, bucket_index, rng);
@@ -78,6 +75,7 @@ bool Segment::MergeSegment(Segment& other, std::mt19937& rng) {
     return true;
 }
 
+// Ivan & Tia
 bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
     auto it = std::find(buckets_[index_bucket].begin(), buckets_[index_bucket].end(), fingerprint);
     if (it != buckets_[index_bucket].end()) return true;
@@ -90,6 +88,7 @@ bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
     return false;
 }
 
+// Ivan
 bool Segment::Delete(uint32_t fingerprint, uint32_t index_bucket) {
     auto it = std::find(buckets_[index_bucket].begin(), buckets_[index_bucket].end(), fingerprint);
     if (it != buckets_[index_bucket].end()) {
@@ -108,7 +107,7 @@ bool Segment::Delete(uint32_t fingerprint, uint32_t index_bucket) {
     return false;
 }
 
-// TODO: Somehow remove kEmptyFingerprint from the function
+// Ivan & Tia
 void Segment::EraseByBit(bool bit_value, uint32_t bit_index) {
     for (auto &bucket : buckets_) {
         for (auto &entry : bucket) {
@@ -121,6 +120,7 @@ void Segment::EraseByBit(bool bit_value, uint32_t bit_index) {
     }
 }
 
+// Ivan & Tia
 bool Segment::InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937 &rng) {
     
     if (InsertInBucket(fingerprint, index_bucket) || InsertInBucket(fingerprint, index_bucket_other)) {
@@ -142,14 +142,17 @@ bool Segment::InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t 
     return false;
 }
 
+// Ivan
 void Segment::AddOverflow() {
     overflow_ = new Segment();
 }
 
+// Ivan
 [[nodiscard]] inline uint32_t Segment::GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) const {
     return (index_bucket ^ fingerprint) & kMaskBucket;
 }
 
+// Ivan & Tia
 inline bool Segment::InsertInBucket(uint32_t fingerprint, uint32_t index_bucket) {
     if (buckets_[index_bucket].size() < kFingerprintsPerBucket) {
         buckets_[index_bucket].push_back(fingerprint);
@@ -159,6 +162,7 @@ inline bool Segment::InsertInBucket(uint32_t fingerprint, uint32_t index_bucket)
     return false;
 }
 
+// Ivan
 [[nodiscard]] inline uint32_t Segment::SwapWithRandomInBucket(uint32_t fingerprint, uint32_t index_bucket, std::mt19937 &rng) {
     uint32_t entry_index = rng() % kFingerprintsPerBucket;
     uint32_t taken = buckets_[index_bucket][entry_index];

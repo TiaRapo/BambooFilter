@@ -16,7 +16,7 @@ class BambooFilter {
     friend std::ostream& operator<<(std::ostream& os, const BambooFilter& bf);
 
     public:
-        BambooFilter(uint32_t capacity /*TODO*/);
+        BambooFilter(uint32_t capacity);
 
         ~BambooFilter();
 
@@ -34,7 +34,7 @@ class BambooFilter {
 
         // Constants
         const size_t kNumBitsInitialTable_; // Bucket bit count + initial segment bit count
-        const uint32_t kSeed_;
+        const uint32_t kSeed_;  // Seed for the RNG
 
         // Attributes
         std::vector<Segment*> segments_;    // Segments

@@ -15,8 +15,6 @@ class Segment {
         Segment(/*TODO?*/);
         Segment(Segment* original);
 
-        ~Segment();
-
         [[nodiscard]] Segment* GetOverflow() const noexcept;
         bool Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& rng);
         bool MergeSegment(Segment& other, std::mt19937& rng);
@@ -33,7 +31,7 @@ class Segment {
         [[nodiscard]] inline uint32_t SwapWithRandomInBucket(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& rng);
 
         // Attributes
-        std::vector<std::vector<uint32_t>> buckets_; // TODO: Can be flattened (and buckets can be pre-chained)
+        std::vector<std::vector<uint32_t>> buckets_;
         Segment* overflow_;
 };
 
