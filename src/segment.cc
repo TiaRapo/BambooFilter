@@ -4,49 +4,33 @@
 #include <random>
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 #include "utility.h"
 #include "config.h"
 
 std::ostream& operator<<(std::ostream& os, const Segment& s) {
-    for (std::size_t i = 0; i < kBucketsPerSegment; i++) {
-        bool bucketEmpty = true;
-
-        for (std::size_t j = 0; j < kFingerprintsPerBucket; j++) {
-            if (s.buckets_[i][j] != kEmptyFingerprint) {
-                bucketEmpty = false;
-                break;
-            }
+    for (std::vector<uint32_t> bucket : s.buckets_) {
+        if (bucket.empty()) continue;
+        for (uint32_t element : bucket) {
+            os << element << " ";
         }
-
-        if (bucketEmpty) {
-            continue;
-        }
-
-        os << "\tBucket " << i << " -";
-
-        for (std::size_t j = 0; j < kFingerprintsPerBucket; j++) {
-            if (s.buckets_[i][j] == kEmptyFingerprint) {
-                os << " _";
-            } else {
-                os << " " << s.buckets_[i][j];
-            }
-        }
-
-        os << '\n';
+        os << "\n";
     }
 
     return os;
 }
 
 Segment::Segment(/*TODO?*/)
-        : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>(kFingerprintsPerBucket, kEmptyFingerprint)),
+        : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>()),
         overflow_(nullptr) {
-    // TODO ?
+    for (std::vector<uint32_t> bucket : buckets_) {
+        bucket.reserve(4);
+    }
 }
 
 Segment::Segment(Segment* original)
-        : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>(kFingerprintsPerBucket, kEmptyFingerprint)),
+        : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>()),
         overflow_(nullptr) {
     buckets_ = original->buckets_;
 }
@@ -70,92 +54,65 @@ bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& 
     Segment* segment = this;
     
     while (true) {
-        if (segment->InsertLocal(fingerprint, index_bucket, index_bucket_other, rng)) {
-            break;
-        }
+        if (segment->InsertLocal(fingerprint, index_bucket, index_bucket_other, rng)) return true;
 
         Segment* overflow = segment->GetOverflow();
         if (overflow == nullptr) {
             segment->AddOverflow();
             segment = segment->GetOverflow();
             segment->InsertLocal(fingerprint, index_bucket, index_bucket_other, rng);
-            break;
+            return true;
         }
 
         segment = overflow;
-    }
-    
-    if (InsertInBucket(fingerprint, index_bucket) || InsertInBucket(fingerprint, index_bucket_other)) {
-        return true;
-    }
-
-    if (rng() & std::uint32_t{1}) { // 50% chance to pick either of the two buckets
-        index_bucket = index_bucket_other;
-    }
-
-    for (std::size_t i = 0 ; i < kMaxEvictions ; i++) {
-        fingerprint = SwapWithRandomInBucket(fingerprint, index_bucket, rng);
-        index_bucket = GetOtherBucket(index_bucket, fingerprint);
-        if (InsertInBucket(fingerprint, index_bucket)) {
-            return true;
-        }
     }
 
     return false;
 }
 
-bool Segment::Insert(Segment& other, std::mt19937& rng) {
-    for (std::size_t i = 0 ; i < kBucketsPerSegment ; i++) {
-        for (std::size_t j = 0 ; j < kFingerprintsPerBucket ; j++) {
-            Insert(other.buckets_[i][j], i, rng);
-        }
+bool Segment::MergeSegment(Segment& other, std::mt19937& rng) {
+    for (size_t bucket_index = 0 ; bucket_index < kBucketsPerSegment ; bucket_index++) {
+        for (uint32_t fingerprint : other.buckets_[bucket_index]) Insert(fingerprint, bucket_index, rng);
     }
 
     return true;
 }
 
 bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
-    for (auto &entry : buckets_[index_bucket]) {
-        if (entry == fingerprint) {
-            return true;
-        }
-    }
+    auto it = std::find(buckets_[index_bucket].begin(), buckets_[index_bucket].end(), fingerprint);
+    if (it != buckets_[index_bucket].end()) return true;
     
     uint32_t index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
 
-    for (auto &entry : buckets_[index_bucket_other]) {
-        if (entry == fingerprint) {
-            return true;
-        }
-    }
+    it = std::find(buckets_[index_bucket_other].begin(), buckets_[index_bucket_other].end(), fingerprint);
+    if (it != buckets_[index_bucket_other].end()) return true;
 
     return false;
 }
 
 bool Segment::Delete(uint32_t fingerprint, uint32_t index_bucket) {
-    for (auto &entry : buckets_[index_bucket]) {
-        if (entry == fingerprint) {
-            entry = kEmptyFingerprint;
-            return true;
-        }
+    auto it = std::find(buckets_[index_bucket].begin(), buckets_[index_bucket].end(), fingerprint);
+    if (it != buckets_[index_bucket].end()) {
+        buckets_[index_bucket].erase(it);
+        return true;
     }
-    
-    uint32_t index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
 
-    for (auto &entry : buckets_[index_bucket_other]) {
-        if (entry == fingerprint) {
-            entry = kEmptyFingerprint;
-            return true;
-        }
+    uint32_t index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
+    
+    it = std::find(buckets_[index_bucket_other].begin(), buckets_[index_bucket_other].end(), fingerprint);
+    if (it != buckets_[index_bucket_other].end()) {
+        buckets_[index_bucket_other].erase(it);
+        return true;
     }
 
     return false;
 }
 
-void Segment::EraseByBit(bool bit_value, std::uint32_t bit_index) {
+// TODO: Somehow remove kEmptyFingerprint from the function
+void Segment::EraseByBit(bool bit_value, uint32_t bit_index) {
     for (auto &bucket : buckets_) {
         for (auto &entry : bucket) {
-            bool bit_is_set = (entry & (std::uint32_t{1} << bit_index)) != std::uint32_t{0};
+            bool bit_is_set = (entry & (uint32_t{1} << bit_index)) != uint32_t{0};
             
             if (bit_is_set == bit_value) {
                 entry = kEmptyFingerprint;
@@ -165,15 +122,16 @@ void Segment::EraseByBit(bool bit_value, std::uint32_t bit_index) {
 }
 
 bool Segment::InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937 &rng) {
+    
     if (InsertInBucket(fingerprint, index_bucket) || InsertInBucket(fingerprint, index_bucket_other)) {
         return true;
     }
 
-    if (rng() & std::uint32_t{1}) { // 50% chance to pick either of the two buckets
+    if (rng() & uint32_t{1}) { // 50% chance to pick either of the two buckets
         index_bucket = index_bucket_other;
     }
 
-    for (std::size_t i = 0 ; i < kMaxEvictions ; i++) {
+    for (size_t i = 0 ; i < kMaxEvictions ; i++) {
         fingerprint = SwapWithRandomInBucket(fingerprint, index_bucket, rng);
         index_bucket = GetOtherBucket(index_bucket, fingerprint);
         if (InsertInBucket(fingerprint, index_bucket)) {
@@ -193,11 +151,9 @@ void Segment::AddOverflow() {
 }
 
 inline bool Segment::InsertInBucket(uint32_t fingerprint, uint32_t index_bucket) {
-    for (auto &entry : buckets_[index_bucket]) {
-        if (entry == kEmptyFingerprint) {
-            entry = fingerprint;
-            return true;
-        }
+    if (buckets_[index_bucket].size() < kFingerprintsPerBucket) {
+        buckets_[index_bucket].push_back(fingerprint);
+        return true;
     }
 
     return false;

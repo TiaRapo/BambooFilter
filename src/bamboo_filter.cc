@@ -8,6 +8,7 @@
 #include <memory>
 #include <cmath>
 #include <inttypes.h>
+#include <bitset>
 
 #include "config.h"
 #include "segment.h"
@@ -15,7 +16,7 @@
 #include "wyhash.h"
 
 std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
-    for (std::size_t i = 0 ; i < bf.segments_.size() ; i++) {
+    for (size_t i = 0 ; i < bf.segments_.size() ; i++) {
         os << "Segment " << i << '\n';
         os << *bf.segments_[i];
     }
@@ -25,7 +26,7 @@ std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
 
 BambooFilter::BambooFilter(uint32_t capacity /*TODO?*/)
         : kNumBitsInitialTable_(std::max((size_t)ceil(log2(static_cast<double>(capacity) / 4.0)), kNumBitsBucket+1)),
-        kSeed_(static_cast<std::uint32_t>(std::random_device{}())),
+        kSeed_(static_cast<uint32_t>(std::random_device{}())),
         num_elems_(0),
         index_split_sgm_(0u) {
     // Placing the initialization of variables that depend on the initialization of other variables in constructor body ...
@@ -36,11 +37,6 @@ BambooFilter::BambooFilter(uint32_t capacity /*TODO?*/)
     for (int i=0; i < (int)(1 << (kNumBitsInitialTable_-kNumBitsBucket)); i++) {
         segments_.push_back(new Segment());
     }
-
-    // std::cout << "Table bits: " << (int)kNumBitsInitialTable_ << "\n";
-    // std::cout << "Bits per bucket: " << (int)kNumBitsBucket << "\n";
-    // std::cout << "Bits per segment: " << (int)(kNumBitsInitialTable_-kNumBitsBucket) << "\n";
-    // std::cout << "Max num of segments: " << (int)(1 << (kNumBitsInitialTable_-kNumBitsBucket)) << "\n";
 }
 
 BambooFilter::~BambooFilter() {
@@ -49,7 +45,7 @@ BambooFilter::~BambooFilter() {
     }
 }
 
-[[nodiscard]] std::size_t BambooFilter::GetNumElems() const noexcept {
+[[nodiscard]] size_t BambooFilter::GetNumElems() const noexcept {
     return num_elems_;
 }
 
@@ -115,7 +111,7 @@ void BambooFilter::Expand() {
     Segment* splt_segment = new Segment(orig_segment);
     segments_.push_back(splt_segment);
 
-    std::uint32_t round = num_bits_table_ - kNumBitsInitialTable_;
+    uint32_t round = num_bits_table_ - kNumBitsInitialTable_;
 
     orig_segment->EraseByBit(1, round);     // Remove entries where i-th bit is 1
     splt_segment->EraseByBit(0, round);     // Remove entries where i-th bit is 0
@@ -137,9 +133,9 @@ void BambooFilter::Compress() {
     Segment* segment_dst = segments_[index_split_sgm_];
     Segment* segment_src = segments_.back();
 
-    std::uint32_t round = num_bits_table_ - kNumBitsInitialTable_;
+    uint32_t round = num_bits_table_ - kNumBitsInitialTable_;
 
-    segment_dst->Insert(*segment_src, rng_);
+    segment_dst->MergeSegment(*segment_src, rng_);
     segments_.pop_back();
     delete segment_src; 
 }
@@ -147,10 +143,8 @@ void BambooFilter::Compress() {
 inline void BambooFilter::CalculateIndices(std::span<const std::byte> elem, uint32_t& fingerprint, uint32_t& index_bucket, uint32_t& index_segment) const {
     uint32_t hash = wyhash(elem.data(), elem.size(), kSeed_, _wyp);
 
-    fingerprint = (hash >> kNumBitsInitialTable_) & kMaskFingerprint;
-    if (fingerprint = kEmptyFingerprint) {
-        fingerprint = kEmptyFingerprintReplacement; // TODO: Do we want a better replacement method?
-    }
+    fingerprint = (hash >> (sizeof(hash)*8 - kNumBitsFingerprint)) & kMaskFingerprint;
+
     index_bucket = hash & kMaskBucket;
     index_segment = (hash >> kNumBitsBucket) & (num_bits_table_ - kNumBitsBucket);
 }

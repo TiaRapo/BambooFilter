@@ -19,10 +19,10 @@ class Segment {
 
         [[nodiscard]] Segment* GetOverflow() const noexcept;
         bool Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& rng);
-        bool Insert(Segment& other, std::mt19937& rng);
+        bool MergeSegment(Segment& other, std::mt19937& rng);
         bool Lookup(uint32_t fingerprint, uint32_t index_bucket) const;
         bool Delete(uint32_t fingerprint, uint32_t index_bucket);
-        void EraseByBit(bool bit_value, std::uint32_t bit_index);
+        void EraseByBit(bool bit_value, uint32_t bit_index);
         
     private:
         // Internal helper functions
