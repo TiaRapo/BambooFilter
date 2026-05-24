@@ -14,11 +14,10 @@
 #include "utility.h"
 #include "wyhash.h"
 
-// TODO: Fix; Mistake in segment printing
 std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
     for (std::size_t i = 0 ; i < bf.segments_.size() ; i++) {
         os << "Segment " << i << '\n';
-        os << bf.segments_[i];
+        os << *bf.segments_[i];
     }
 
     return os;

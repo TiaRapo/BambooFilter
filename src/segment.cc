@@ -9,11 +9,31 @@
 #include "config.h"
 
 std::ostream& operator<<(std::ostream& os, const Segment& s) {
-    for (std::size_t i = 0 ; i < kBucketsPerSegment ; i++) {
-        os << "\tBucket " << i << '\n';
-        for (std::size_t j = 0 ; j < kFingerprintsPerBucket ; j++) {
-            os << "\t\t" << s.buckets_[i][j] << '\n';
+    for (std::size_t i = 0; i < kBucketsPerSegment; i++) {
+        bool bucketEmpty = true;
+
+        for (std::size_t j = 0; j < kFingerprintsPerBucket; j++) {
+            if (s.buckets_[i][j] != kEmptyFingerprint) {
+                bucketEmpty = false;
+                break;
+            }
         }
+
+        if (bucketEmpty) {
+            continue;
+        }
+
+        os << "\tBucket " << i << " -";
+
+        for (std::size_t j = 0; j < kFingerprintsPerBucket; j++) {
+            if (s.buckets_[i][j] == kEmptyFingerprint) {
+                os << " _";
+            } else {
+                os << " " << s.buckets_[i][j];
+            }
+        }
+
+        os << '\n';
     }
 
     return os;
