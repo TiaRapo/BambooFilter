@@ -59,7 +59,6 @@ bool BambooFilter::Insert(std::span<const std::byte> elem) {
     num_elems_++;
     
     if (!(num_elems_ & (kResizingThreshold - 1))) {
-        std::cout << num_elems_ << "\t" << (kResizingThreshold - 1);
         Expand();
     }
 
@@ -129,8 +128,6 @@ void BambooFilter::Expand() {
         index_split_sgm_ = 0u;
         num_bits_table_++;
     }
-
-    std::cout << "///////////////////////EXPANDDD///////////////////////\n";
 }
 
 // Ivan

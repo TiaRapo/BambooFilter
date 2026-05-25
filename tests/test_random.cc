@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <bits/stdc++.h>
 
 #include "random.h"
 #include "timing.h"
@@ -12,14 +13,14 @@
 #include "bamboo_filter.h"
 
 int main(int argc, char* argv[]) {
-    std::cout << "### test_random ###\n";
-    
-    // TODO: VERY UNFINISHED
+    uint32_t num_operations = static_cast<uint32_t>(std::stoul(argv[1]));
+
+    std::ofstream out_file("../../tests/output/test_random.txt");
 
     std::vector<std::string> to_add;
     std::vector<std::string> to_lookup;
     
-    GenerateRandom64(100000, to_add, to_lookup);
+    GenerateRandom64(num_operations, to_add, to_lookup);
     
     std::vector<std::span<const std::byte>> to_add_bytes;
     std::vector<std::span<const std::byte>> to_lookup_bytes;
@@ -32,7 +33,10 @@ int main(int argc, char* argv[]) {
         to_lookup_bytes.push_back(std::as_bytes(std::span(elem)));
     }
 
-    BambooFilter* bf = new BambooFilter(20000);
+    BambooFilter* bf = new BambooFilter(num_operations);
+
+    std::cout << "Inserting random elements\n";
+    auto start_time = NowNanos();
 
     std::size_t insert_count = 0;
     for (auto& elem : to_add_bytes) {
@@ -41,6 +45,13 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    std::cout << "Insert rate: " << ((insert_count * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
+    out_file << "Insert rate: " << ((insert_count * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
+
+    // Start timer--Lookup
+    std::cout << "Looking for random elements\n";
+    start_time = NowNanos();
+
     std::size_t found_count = 0;
     for (auto& elem : to_lookup_bytes) {
         if (bf->Lookup(elem)) {
@@ -48,8 +59,15 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    std::cout << "Lookup rate: " << ((to_lookup_bytes.size() * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
+    out_file << "Lookup rate: " << ((to_lookup_bytes.size() * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
+
     std::cout << "Insert count: " << insert_count << '\n';
     std::cout << "Found count: " << found_count << ", tried " << to_lookup_bytes.size() << '\n';
+    out_file << "Insert count: " << insert_count << '\n';
+    out_file << "Found count: " << found_count << ", tried " << to_lookup_bytes.size() << '\n';
+
+    delete bf;
 
     return 0;
 }
