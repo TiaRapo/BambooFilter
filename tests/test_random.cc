@@ -15,7 +15,7 @@
 int main(int argc, char* argv[]) {
     uint32_t num_operations = static_cast<uint32_t>(std::stoul(argv[1]));
 
-    std::ofstream out_file("./output/test_random.txt");
+    std::ofstream out_file("./output/test_random.txt", std::ios::app);
 
     std::vector<std::string> to_add;
     std::vector<std::string> to_lookup;
@@ -46,8 +46,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::cout << "Insert rate: " << ((insert_count * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
-    out_file << "Insert rate: " << ((insert_count * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
+    auto insert_rate = ((insert_count * 1000.0) / static_cast<double>(NowNanos() - start_time));
+    std::cout << "Insert rate: " << insert_rate << "\n";
 
     // Start timer--Lookup
     std::cout << "Looking for random elements\n";
@@ -60,13 +60,15 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::cout << "Lookup rate: " << ((to_lookup_bytes.size() * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
-    out_file << "Lookup rate: " << ((to_lookup_bytes.size() * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
-
+    auto lookup_rate = ((to_lookup_bytes.size() * 1000.0) / static_cast<double>(NowNanos() - start_time));
+    std::cout << "Lookup rate: " << lookup_rate << '\n';
     std::cout << "Insert count: " << insert_count << '\n';
     std::cout << "Found count: " << found_count << ", tried " << to_lookup_bytes.size() << '\n';
-    out_file << "Insert count: " << insert_count << '\n';
-    out_file << "Found count: " << found_count << ", tried " << to_lookup_bytes.size() << '\n';
+    
+    out_file << "# insert_lookup_count;insert_rate;lookup_rate\n";
+    out_file << insert_count << ';';
+    out_file << insert_rate << ';';
+    out_file << lookup_rate << '\n';
 
     delete bf;
 

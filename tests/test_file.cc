@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     if (!std::filesystem::exists(filepath)) return 1;
 
     std::ifstream in_file(filepath);
-    std::ofstream out_file("./output/test_file.txt");
+    std::ofstream out_file("./output/test_file.txt", std::ios::app);
 
     std::string line;
     std::string kmer = "";
@@ -81,8 +81,8 @@ int main(int argc, char* argv[]) {
         bf->Insert(element);
     }
 
-    std::cout << "Insert rate: " << ((to_add_bytes.size() * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
-    out_file << "Insert rate: " << ((to_add_bytes.size() * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
+    auto insert_rate = ((to_add_bytes.size() * 1000.0) / static_cast<double>(NowNanos() - start_time));
+    std::cout << "Insert rate: " << insert_rate << "\n";
 
     // Start timer--Lookup
     std::cout << "Looking for random kMers\n";
@@ -95,11 +95,17 @@ int main(int argc, char* argv[]) {
         else neg++;
     }
 
-    std::cout << "Lookup rate: " << ((to_lookup_bytes.size() * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
-    out_file << "Lookup rate: " << ((to_lookup_bytes.size() * 1000.0) / static_cast<double>(NowNanos() - start_time)) << "\n";
+    auto lookup_rate = ((to_lookup_bytes.size() * 1000.0) / static_cast<double>(NowNanos() - start_time));
+    std::cout << "Lookup rate: " << lookup_rate << "\n";
 
-    out_file << "Positive finds: " << pos << "\n";
-    out_file << "Negative finds: " << neg << "\n";
+    std::cout << "Positive finds: " << pos << "\n";
+    std::cout << "Negative finds: " << neg << "\n";
+
+    out_file << "# k_mer;operations;insert_rate;lookup_rate\n";
+    out_file << k << ';';
+    out_file << to_lookup_bytes.size() << ';';
+    out_file << insert_rate << ';';
+    out_file << lookup_rate << '\n';
     
     delete bf;
 
