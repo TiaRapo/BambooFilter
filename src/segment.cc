@@ -11,10 +11,12 @@
 
 // Ivan & Tia
 std::ostream& operator<<(std::ostream& os, const Segment& s) {
-    for (std::vector<uint32_t> bucket : s.buckets_) {
+    for (size_t i = 0 ; i < s.buckets_.size() ; i++) {
+        std::vector<uint32_t> bucket = s.buckets_[i];
         if (bucket.empty()) continue;
+        os << "\tBucket " << i << ':';
         for (uint32_t element : bucket) {
-            os << element << " ";
+            os << ' ' << element;
         }
         os << "\n";
     }
@@ -27,7 +29,7 @@ Segment::Segment()
         : buckets_(2 << kNumBitsBucket, std::vector<uint32_t>()),
         overflow_(nullptr) {
     for (std::vector<uint32_t> bucket : buckets_) {
-        bucket.reserve(4);
+        bucket.reserve(kFingerprintsPerBucket);
     }
 }
 

@@ -24,8 +24,8 @@ std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
 
 // Ivan & Tia
 BambooFilter::BambooFilter(uint32_t capacity)
-        : kNumBitsInitialTable_(std::max((size_t)ceil(log2(static_cast<double>(capacity) / 4.0)), kNumBitsBucket+1)),
-        kSeed_(static_cast<uint32_t>(std::random_device{}())),
+        : kNumBitsInitialTable_(std::max((size_t)ceil(log2(static_cast<double>(capacity) / (double)kFingerprintsPerBucket)), kNumBitsBucket+1)),
+        kSeed_(42), // TODO: random_device{}()
         num_elems_(0),
         index_split_sgm_(0u) {
     num_bits_table_ = kNumBitsInitialTable_;
@@ -119,15 +119,14 @@ void BambooFilter::Expand() {
     Segment* splt_segment = new Segment(orig_segment);
     segments_.push_back(splt_segment);
 
-    uint32_t round = num_bits_table_ - kNumBitsInitialTable_;
-
-    orig_segment->EraseByBit(1, round);     // Remove entries where i-th bit is 1
-    splt_segment->EraseByBit(0, round);     // Remove entries where i-th bit is 0
+    orig_segment->EraseByBit(1, num_bits_table_);     // Remove entries where i-th bit is 1
+    splt_segment->EraseByBit(0, num_bits_table_);     // Remove entries where i-th bit is 0
 
     index_split_sgm_++;
 
     if (index_split_sgm_ == (1u << (int)ceil(log2(segments_.size())))) {
         index_split_sgm_ = 0u;
+        num_bits_table_++;
     }
 
     std::cout << "///////////////////////EXPANDDD///////////////////////\n";
@@ -137,6 +136,7 @@ void BambooFilter::Expand() {
 void BambooFilter::Compress() {
     if (index_split_sgm_ == 0u) {
         index_split_sgm_ = (1u << (int)ceil(log2(segments_.size()))) - 1u;
+        num_bits_table_--;
     } else {
         index_split_sgm_--;
     }
