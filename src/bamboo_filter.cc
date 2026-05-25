@@ -6,42 +6,25 @@
 #include <random>
 #include <vector>
 #include <memory>
-
 #include <utility>
 
 #include "config.h"
 #include "segment.h"
-#include "utility.h"
 #include "wyhash.h"
 
-// Ivan
-// std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
-//     for (size_t i = 0 ; i < bf.segments_.size() ; i++) {
-//         os << "Segment " << i << '\n';
-//         os << *bf.segments_[i];
-//     }
-
-//     return os;
-// }
-
 // Ivan & Tia
-BambooFilter::BambooFilter(uint32_t capacity)
-        : kNumBitsInitialTable_(std::max((size_t)ceil(log2(static_cast<double>(capacity) / (double)kFingerprintsPerBucket)), kNumBitsBucket+1)),
-        // kSeed_(static_cast<uint32_t>(std::random_device{}())),
-        kSeed_(42), // TODO: replace with line above
-        num_elems_(0),
-        index_split_sgm_(0u) {
-    num_bits_table_ = kNumBitsInitialTable_;
-    rng_.seed(kSeed_);
-
-    for (int i=0; i < (int)(1 << (kNumBitsInitialTable_-kNumBitsBucket)); i++) {
-        segments_.push_back(new Segment());
-    }
-}
+BambooFilter::BambooFilter(uint32_t initial_capacity)
+        : kNumBitsInitialTable_{std::max((size_t)ceil(log2(static_cast<double>(initial_capacity) / (double)kFingerprintsPerBucket)), kNumBitsBucket + 1)},
+        kSeed_{static_cast<uint32_t>(std::random_device{}())},
+        segments_(size_t{1} << (kNumBitsInitialTable_ - kNumBitsBucket)),
+        num_bits_table_{kNumBitsInitialTable_},
+        num_elems_{0},
+        index_split_sgm_{0u},
+        rng_{kSeed_} {}
 
 // Ivan
 BambooFilter::~BambooFilter() {
-    for (Segment* s : segments_) {
+    for (auto* s : segments_) {
         delete s;
     }
 }
@@ -57,7 +40,6 @@ bool BambooFilter::Insert(std::span<const std::byte> elem) {
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
     segments_[index_segment]->Insert(fingerprint, index_bucket, rng_);
-
     num_elems_++;
     
     if (!(num_elems_ & (kResizingThreshold - 1))) {
@@ -109,13 +91,13 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
 }
 
 // Tia
-double BambooFilter::GetCapacity() {
+[[nodiscard]] uint32_t BambooFilter::GetCapacity() const {
     uint32_t total_cap = segments_.size() * kBucketsPerSegment * kFingerprintsPerBucket;
     return total_cap;
 }
 
 // Tia
-void BambooFilter::Expand() {
+void BambooFilter::Expand() { // TODO: CHECK IF THIS IS GOOD? Erase by bit first?
     // Copy the splitting segment and add it to the filter
     Segment* orig_segment = segments_[index_split_sgm_];
     Segment* splt_segment = new Segment(orig_segment);
@@ -125,10 +107,10 @@ void BambooFilter::Expand() {
     std::vector<std::pair<uint32_t, uint32_t>> overflow_elements;
     Segment* overflow_segment = orig_segment->GetOverflow();
     while (overflow_segment) {
-        std::vector<std::vector<uint32_t>> overflow_buckets = overflow_segment->GetBuckets();
-        for (int index = 0; index < overflow_buckets.size(); index++) {
-            for (uint32_t fingerprint : overflow_buckets[index]) {
-                overflow_elements.push_back({index, fingerprint});
+        std::array<Bucket, kBucketsPerSegment> overflow_buckets = overflow_segment->GetBuckets();
+        for (int index = 0 ; index < overflow_buckets.size() ; index++) {
+            for (uint8_t j = 0 ; j < overflow_buckets[index].GetSize() ; j++) {
+                overflow_elements.push_back({index, overflow_buckets[index].GetEntries()[j]});
             }
         }
         overflow_segment = overflow_segment->GetOverflow();
@@ -136,27 +118,30 @@ void BambooFilter::Expand() {
 
     delete orig_segment->GetOverflow();
 
-    orig_segment->EraseByBit(1, num_bits_table_);     // Remove entries where i-th bit is 1
-    splt_segment->EraseByBit(0, num_bits_table_);     // Remove entries where i-th bit is 0
+    orig_segment->EraseByBit(1, num_bits_table_); // Remove entries where the newly extended segment bit is 1
+    splt_segment->EraseByBit(0, num_bits_table_); // Remove entries where the newly extended segment bit is 0
 
     // Return overflow elements to matching segments
     for (std::pair<uint32_t, uint32_t> element : overflow_elements) {
-        if (element.second & uint32_t{1}<<num_bits_table_ != uint32_t{0}) splt_segment->Insert(element.second, element.first, rng_);
-        else orig_segment->Insert(element.second, element.first, rng_);
+        if (element.second & uint32_t{1} << num_bits_table_ != uint32_t{0}) {
+            splt_segment->Insert(element.second, element.first, rng_);
+        } else {
+            orig_segment->Insert(element.second, element.first, rng_);
+        }
     }
 
     index_split_sgm_++;
 
     if (index_split_sgm_ == (1u << (int)ceil(log2(segments_.size())))) {
         index_split_sgm_ = 0u;
-        num_bits_table_++;  // TODO: check if wrong update
+        num_bits_table_++;
     }
 }
 
 // Ivan
 void BambooFilter::Compress() {
     if (index_split_sgm_ == 0u) {
-        index_split_sgm_ = (1u << (int)ceil(log2(segments_.size()))) - 1u;
+        index_split_sgm_ = (uint32_t{1} << (int)ceil(log2(segments_.size()))) - 1u;
         num_bits_table_--;
     } else {
         index_split_sgm_--;
@@ -167,16 +152,21 @@ void BambooFilter::Compress() {
 
     uint32_t round = num_bits_table_ - kNumBitsInitialTable_;
 
-    segment_dst->MergeSegment(*segment_src, rng_);
+    segment_dst->MergeSegment(segment_src, rng_);
     segments_.pop_back();
     delete segment_src; 
 }
 
 // Ivan
-inline void BambooFilter::CalculateIndices(std::span<const std::byte> elem, uint32_t& fingerprint, uint32_t& index_bucket, uint32_t& index_segment) const {
+inline void BambooFilter::CalculateIndices(
+    std::span<const std::byte> elem,
+    uint32_t& fingerprint,
+    uint32_t& index_bucket,
+    uint32_t& index_segment
+) const {
     uint32_t hash = wyhash(elem.data(), elem.size(), kSeed_, _wyp);
 
-    fingerprint = (hash >> (sizeof(hash)*8 - kNumBitsFingerprint)) & kMaskFingerprint;
+    fingerprint = (hash >> (sizeof(hash) * 8 - kNumBitsFingerprint)) & kMaskFingerprint;
     index_bucket = hash & kMaskBucket;
-    index_segment = (hash >> kNumBitsBucket) & ((1u << (num_bits_table_ - kNumBitsBucket)) - 1u);
+    index_segment = (hash >> kNumBitsBucket) & ((uint32_t{1} << (num_bits_table_ - kNumBitsBucket)) - 1u);
 }
