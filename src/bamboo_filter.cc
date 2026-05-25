@@ -25,7 +25,8 @@ std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
 // Ivan & Tia
 BambooFilter::BambooFilter(uint32_t capacity)
         : kNumBitsInitialTable_(std::max((size_t)ceil(log2(static_cast<double>(capacity) / (double)kFingerprintsPerBucket)), kNumBitsBucket+1)),
-        kSeed_(42), // TODO: random_device{}()
+        // kSeed_(static_cast<uint32_t>(std::random_device{}())),
+        kSeed_(42), // TODO: replace with line above
         num_elems_(0),
         index_split_sgm_(0u) {
     num_bits_table_ = kNumBitsInitialTable_;

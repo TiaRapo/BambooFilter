@@ -17,7 +17,8 @@ using std::vector;
 void GenerateRandom64(::std::size_t count, vector<string> &to_add, vector<string> &to_lookup)
 {
     unordered_set<string> s;
-    ::std::mt19937 random(42); // TODO: use random_device!!!
+    // ::std::random_device random;
+    ::std::mt19937 random(42); // TODO: replace with line above
     // To generate random keys to lookup, this uses ::std::random_device which is slower but
     // stronger than some other pseudo-random alternatives. The reason is that some of these
     // alternatives (like libstdc++'s ::std::default_random, which is a linear congruential
