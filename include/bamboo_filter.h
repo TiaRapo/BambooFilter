@@ -11,9 +11,10 @@
 #include <string>
 
 #include "segment.h"
+#include "config.h"
 
 class BambooFilter {
-    friend std::ostream& operator<<(std::ostream& os, const BambooFilter& bf);
+    // friend std::ostream& operator<<(std::ostream& os, const BambooFilter& bf);
 
     public:
         BambooFilter(uint32_t capacity);

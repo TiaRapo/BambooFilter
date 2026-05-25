@@ -9,6 +9,8 @@
 #include <string>
 #include <array>
 
+#include "config.h"
+
 class Bucket {
     friend class Segment;
 
@@ -24,7 +26,7 @@ class Bucket {
 };
 
 class Segment {
-    friend std::ostream& operator<<(std::ostream& os, const Segment& s);
+    // friend std::ostream& operator<<(std::ostream& os, const Segment& s);
     
     public:
         Segment(/*TODO?*/);

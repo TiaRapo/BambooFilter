@@ -42,10 +42,11 @@ bool Bucket::Lookup(uint32_t fingerprint) const {
 }
 
 void Bucket::EraseByBit(bool bit_value, uint32_t bit_index) {
-    for (uint8_t i = size_ - 1 ; i >= 0 ; i--) {
+    for (uint8_t i = 0 ; i < size_ ; i++) {
         if (((entries_[i] & (uint32_t{1} << bit_index)) != uint32_t{0}) == bit_value) {
             entries_[i] = entries_[size_ - 1];
             size_--;
+            i--;
         }
     }
 }

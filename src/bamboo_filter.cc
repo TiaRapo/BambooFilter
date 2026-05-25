@@ -13,14 +13,14 @@
 #include "wyhash.h"
 
 // Ivan
-std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
-    for (size_t i = 0 ; i < bf.segments_.size() ; i++) {
-        os << "Segment " << i << '\n';
-        os << *bf.segments_[i];
-    }
+// std::ostream& operator<<(std::ostream& os, const BambooFilter& bf) {
+//     for (size_t i = 0 ; i < bf.segments_.size() ; i++) {
+//         os << "Segment " << i << '\n';
+//         os << *bf.segments_[i];
+//     }
 
-    return os;
-}
+//     return os;
+// }
 
 // Ivan & Tia
 BambooFilter::BambooFilter(uint32_t capacity)
@@ -154,7 +154,6 @@ inline void BambooFilter::CalculateIndices(std::span<const std::byte> elem, uint
     uint32_t hash = wyhash(elem.data(), elem.size(), kSeed_, _wyp);
 
     fingerprint = (hash >> (sizeof(hash)*8 - kNumBitsFingerprint)) & kMaskFingerprint;
-
     index_bucket = hash & kMaskBucket;
-    index_segment = (hash >> kNumBitsBucket) & (num_bits_table_ - kNumBitsBucket);
+    index_segment = (hash >> kNumBitsBucket) & ((1u << (num_bits_table_ - kNumBitsBucket)) - 1u);
 }

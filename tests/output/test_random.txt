@@ -1,4 +1,4 @@
-Insert rate: 0.146782
-Lookup rate: 0.680731
+Insert rate: 0.10943
+Lookup rate: 0.287856
 Insert count: 1000000
 Found count: 10845, tried 1000000
