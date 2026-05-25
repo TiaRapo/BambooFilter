@@ -12,23 +12,19 @@ TODO
 - CMake >= 3.10
 
 ## Running
+
+
+### Genome from file
+Put genome file in `tests/data`
 ``` sh
-cd build
-./release.sh
+cd tests
+./run.sh file <FILE> <K-MER> <COUNT>
 ```
 
-## Debugging
-Recommended (VSC):
-- Configure launch.json program to `"${workspaceFolder}/build/build-debug/test"`
-- Configure tasks.json command to `"./build/debug.sh"`
-- Be in project root
-- Press F5 (Start Debugging)
-
-... alternatively:
-
+### Random
 ``` sh
-cd build
-./debug.sh
+cd tests
+./run.sh random <COUNT>
 ```
 
 ## Coding Style
