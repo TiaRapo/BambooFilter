@@ -32,12 +32,15 @@ class Segment {
         Segment(/*TODO?*/);
         Segment(Segment* original);
 
+        ~Segment();
+
         [[nodiscard]] Segment* GetOverflow() const noexcept;
         bool Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& rng);
         bool MergeSegment(Segment& other, std::mt19937& rng);
         bool Lookup(uint32_t fingerprint, uint32_t index_bucket) const;
         bool Delete(uint32_t fingerprint, uint32_t index_bucket);
         void EraseByBit(bool bit_value, uint32_t bit_index);
+        std::vector<std::vector<uint32_t>> GetBuckets();
         
     private:
         // Internal helper functions

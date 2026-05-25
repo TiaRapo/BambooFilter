@@ -83,9 +83,19 @@ Segment::Segment(Segment* original)
         : buckets_(original->buckets_),
         overflow_(nullptr) {}
 
+// Tia
+Segment::~Segment() {
+    delete overflow_;
+}
+
 // Ivan & Tia
 [[nodiscard]] Segment* Segment::GetOverflow() const noexcept {
     return overflow_;
+}
+
+// Tia
+std::vector<std::vector<uint32_t>> Segment::GetBuckets() {
+    return buckets_;
 }
 
 // Ivan & Tia
@@ -118,6 +128,7 @@ bool Segment::MergeSegment(Segment& other, std::mt19937& rng) {
             Insert(other.buckets_[bucket_index].entries_[i], bucket_index, rng);
         }
     }
+    // if (other.GetOverflow()) MergeSegment(other.GetOverflow(), rng);
 
     return true;
 }
