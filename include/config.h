@@ -17,7 +17,7 @@ inline constexpr std::uint32_t kMaskFingerprint = (std::uint32_t{1} << kNumBitsF
 inline constexpr std::uint32_t kEmptyFingerprint = 0u;
 inline constexpr std::uint32_t kEmptyFingerprintReplacement = 1u;
 
-inline constexpr std::size_t kResizingThreshold = 8; // Must be a power of 2 // TODO: Definitely adjust this
+inline constexpr std::size_t kResizingThreshold = 2 * 4 * (1 << kNumBitsBucket);    // Must be a power of 2
 
 inline constexpr std::size_t kMaxEvictions = 8;
 

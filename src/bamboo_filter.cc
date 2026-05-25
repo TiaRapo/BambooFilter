@@ -58,6 +58,7 @@ bool BambooFilter::Insert(std::span<const std::byte> elem) {
     num_elems_++;
     
     if (!(num_elems_ & (kResizingThreshold - 1))) {
+        std::cout << num_elems_ << "\t" << (kResizingThreshold - 1);
         Expand();
     }
 
@@ -106,6 +107,12 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
 }
 
 // Tia
+double BambooFilter::GetCapacity() {
+    uint32_t total_cap = segments_.size() * kBucketsPerSegment * kFingerprintsPerBucket;
+    return total_cap;
+}
+
+// Tia
 void BambooFilter::Expand() {
     // Copy the splitting segment and add it to the filter
     Segment* orig_segment = segments_[index_split_sgm_];
@@ -122,6 +129,8 @@ void BambooFilter::Expand() {
     if (index_split_sgm_ == (1u << (int)ceil(log2(segments_.size())))) {
         index_split_sgm_ = 0u;
     }
+
+    std::cout << "///////////////////////EXPANDDD///////////////////////\n";
 }
 
 // Ivan

@@ -25,6 +25,8 @@ class BambooFilter {
         bool Insert(std::span<const std::byte> elem);
         bool Lookup(std::span<const std::byte> elem) const;
         bool Delete(std::span<const std::byte> elem);
+
+        double GetCapacity();
         
     private:
         // Internal helper functions
