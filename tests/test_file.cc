@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     if (!std::filesystem::exists(filepath)) return 1;
 
     std::ifstream in_file(filepath);
-    std::ofstream out_file("/output/test_file.txt");
+    std::ofstream out_file("./output/test_file.txt");
 
     std::string line;
     std::string kmer = "";
