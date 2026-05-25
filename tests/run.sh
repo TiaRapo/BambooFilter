@@ -4,7 +4,7 @@ set -euo pipefail
 
 usage() {
     echo "Usage:"
-    echo "  $0 file <PATH <K-MER> <COUNT>"
+    echo "  $0 file <PATH> <K-MER> <COUNT>"
     echo "  $0 random <COUNT>"
 }
 

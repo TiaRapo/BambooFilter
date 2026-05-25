@@ -17,7 +17,7 @@
 }
 
 // Ivan
-inline bool Bucket::Insert(uint32_t fingerprint) {
+bool Bucket::Insert(uint32_t fingerprint) {
     if (size_ < kFingerprintsPerBucket) {
         entries_[size_] = fingerprint;
         size_++;
@@ -63,7 +63,7 @@ void Bucket::EraseByBit(bool bit_value, uint32_t bit_index) {
 }
 
 // Ivan
-[[nodiscard]] inline uint32_t Bucket::SwapWithRandom(uint32_t fingerprint, std::mt19937 &rng) {
+[[nodiscard]] uint32_t Bucket::SwapWithRandom(uint32_t fingerprint, std::mt19937 &rng) {
     uint32_t entry_index = rng() % kFingerprintsPerBucket;
     uint32_t taken = entries_[entry_index];
     entries_[entry_index] = fingerprint;

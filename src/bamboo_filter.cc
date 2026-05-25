@@ -91,7 +91,7 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
 }
 
 // Tia
-[[nodiscard]] uint32_t BambooFilter::GetCapacity() const {
+[[nodiscard]] uint32_t BambooFilter::GetCapacity() const noexcept {
     uint32_t total_cap = segments_.size() * kBucketsPerSegment * kFingerprintsPerBucket;
     return total_cap;
 }
