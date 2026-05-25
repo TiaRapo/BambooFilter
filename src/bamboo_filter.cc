@@ -7,6 +7,8 @@
 #include <vector>
 #include <memory>
 
+#include <utility>
+
 #include "config.h"
 #include "segment.h"
 #include "utility.h"
@@ -119,14 +121,35 @@ void BambooFilter::Expand() {
     Segment* splt_segment = new Segment(orig_segment);
     segments_.push_back(splt_segment);
 
+    // Collect all bucket_index-fingerprint pairs from the overflow segments 
+    std::vector<std::pair<uint32_t, uint32_t>> overflow_elements;
+    Segment* overflow_segment = orig_segment->GetOverflow();
+    while (overflow_segment) {
+        std::vector<std::vector<uint32_t>> overflow_buckets = overflow_segment->GetBuckets();
+        for (int index = 0; index < overflow_buckets.size(); index++) {
+            for (uint32_t fingerprint : overflow_buckets[index]) {
+                overflow_elements.push_back({index, fingerprint});
+            }
+        }
+        overflow_segment = overflow_segment->GetOverflow();
+    }
+
+    delete orig_segment->GetOverflow();
+
     orig_segment->EraseByBit(1, num_bits_table_);     // Remove entries where i-th bit is 1
     splt_segment->EraseByBit(0, num_bits_table_);     // Remove entries where i-th bit is 0
+
+    // Return overflow elements to matching segments
+    for (std::pair<uint32_t, uint32_t> element : overflow_elements) {
+        if (element.second & uint32_t{1}<<num_bits_table_ != uint32_t{0}) splt_segment->Insert(element.second, element.first, rng_);
+        else orig_segment->Insert(element.second, element.first, rng_);
+    }
 
     index_split_sgm_++;
 
     if (index_split_sgm_ == (1u << (int)ceil(log2(segments_.size())))) {
         index_split_sgm_ = 0u;
-        num_bits_table_++;
+        num_bits_table_++;  // TODO: check if wrong update
     }
 }
 
@@ -156,5 +179,5 @@ inline void BambooFilter::CalculateIndices(std::span<const std::byte> elem, uint
     fingerprint = (hash >> (sizeof(hash)*8 - kNumBitsFingerprint)) & kMaskFingerprint;
 
     index_bucket = hash & kMaskBucket;
-    index_segment = (hash >> kNumBitsBucket) & (num_bits_table_ - kNumBitsBucket);
+    index_segment = (hash >> kNumBitsBucket) & ((1u << (num_bits_table_ - kNumBitsBucket)) - 1u);
 }

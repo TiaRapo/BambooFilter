@@ -40,9 +40,19 @@ Segment::Segment(Segment* original)
     buckets_ = original->buckets_;
 }
 
+// Tia
+Segment::~Segment() {
+    delete overflow_;
+}
+
 // Ivan & Tia
 [[nodiscard]] Segment* Segment::GetOverflow() const noexcept {
     return overflow_;
+}
+
+// Tia
+std::vector<std::vector<uint32_t>> Segment::GetBuckets() {
+    return buckets_;
 }
 
 // Ivan & Tia
@@ -73,6 +83,7 @@ bool Segment::MergeSegment(Segment& other, std::mt19937& rng) {
     for (size_t bucket_index = 0 ; bucket_index < kBucketsPerSegment ; bucket_index++) {
         for (uint32_t fingerprint : other.buckets_[bucket_index]) Insert(fingerprint, bucket_index, rng);
     }
+    // if (other.GetOverflow()) MergeSegment(other.GetOverflow(), rng);
 
     return true;
 }
