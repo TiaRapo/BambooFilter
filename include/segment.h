@@ -7,6 +7,21 @@
 #include <memory>
 #include <iostream>
 #include <string>
+#include <array>
+
+class Bucket {
+    friend class Segment;
+
+    private:
+        inline bool Insert(uint32_t fingerprint);
+        bool Delete(uint32_t fingerprint);
+        bool Lookup(uint32_t fingerprint) const;
+        void EraseByBit(bool bit_value, uint32_t bit_index);
+        [[nodiscard]] inline uint32_t SwapWithRandom(uint32_t fingerprint, std::mt19937 &rng);
+
+        uint8_t size_ = 0;
+        std::array<uint32_t, kFingerprintsPerBucket> entries_{};
+};
 
 class Segment {
     friend std::ostream& operator<<(std::ostream& os, const Segment& s);
@@ -26,12 +41,10 @@ class Segment {
         // Internal helper functions
         inline bool InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937& rng);
         void AddOverflow();
-        [[nodiscard]] inline uint32_t GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) const; 
-        inline bool InsertInBucket(uint32_t fingerprint, uint32_t index_bucket);
-        [[nodiscard]] inline uint32_t SwapWithRandomInBucket(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& rng);
+        [[nodiscard]] inline uint32_t GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) const;
 
         // Attributes
-        std::vector<std::vector<uint32_t>> buckets_;
+        std::array<Bucket, kBucketsPerSegment> buckets_;
         Segment* overflow_;
 };
 
