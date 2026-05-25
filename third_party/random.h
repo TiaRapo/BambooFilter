@@ -17,8 +17,39 @@ using std::vector;
 void GenerateRandom64(::std::size_t count, vector<string> &to_add, vector<string> &to_lookup)
 {
     unordered_set<string> s;
-    // ::std::random_device random;
-    ::std::mt19937 random(42); // TODO: replace with line above
+    ::std::random_device random;
+    // To generate random keys to lookup, this uses ::std::random_device which is slower but
+    // stronger than some other pseudo-random alternatives. The reason is that some of these
+    // alternatives (like libstdc++'s ::std::default_random, which is a linear congruential
+    // generator) behave non-randomly under some hash families like Dietzfelbinger's
+    // multiply-shift.
+    auto genrand = [&random]() {
+        return random() + (static_cast<::std::uint64_t>(random()) << 32);
+    };
+    while (s.size() < 2 * count)
+    {
+        s.insert(std::to_string(genrand()));
+    }
+
+    size_t i = 0;
+    for (auto ele : s)
+    {
+        if (i < count)
+        {
+            to_add.push_back(ele);
+        }
+        else
+        {
+            to_lookup.push_back(ele);
+        }
+        i++;
+    }
+}
+
+void GenerateRandom64SeededMT(::std::size_t count, vector<string> &to_add, vector<string> &to_lookup, int seed)
+{
+    unordered_set<string> s;
+    ::std::mt19937 random(42);
     // To generate random keys to lookup, this uses ::std::random_device which is slower but
     // stronger than some other pseudo-random alternatives. The reason is that some of these
     // alternatives (like libstdc++'s ::std::default_random, which is a linear congruential

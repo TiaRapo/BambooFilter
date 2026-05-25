@@ -5,19 +5,19 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(LIBRARY_SOURCES
-src/bamboo_filter.cc
-src/segment.cc
-src/utility.cc
+    src/bamboo_filter.cc
+    src/segment.cc
+    src/bucket.cc
 )
 
 add_executable(test_file
-${LIBRARY_SOURCES}
-tests/test_file.cc
+    ${LIBRARY_SOURCES}
+    tests/test_file.cc
 )
 
 add_executable(test_random
-${LIBRARY_SOURCES}
-tests/test_random.cc
+    ${LIBRARY_SOURCES}
+    tests/test_random.cc
 )
 
 target_include_directories(test_file PRIVATE
@@ -26,7 +26,7 @@ target_include_directories(test_file PRIVATE
 )
 
 target_include_directories(test_random PRIVATE
-    include    
+    include
     third_party
 )
 
