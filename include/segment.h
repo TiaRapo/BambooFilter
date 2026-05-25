@@ -26,6 +26,7 @@ class Segment {
         bool Delete(uint32_t fingerprint, uint32_t index_bucket);
         void EraseByBit(bool bit_value, uint32_t bit_index);
         bool MergeSegment(Segment* other, std::mt19937& rng);
+        void ClearOverflow();
         
     private:
         // Internal helper functions

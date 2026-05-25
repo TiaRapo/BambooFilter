@@ -20,7 +20,11 @@ BambooFilter::BambooFilter(uint32_t initial_capacity)
         num_bits_table_{kNumBitsInitialTable_},
         num_elems_{0},
         index_split_sgm_{0u},
-        rng_{kSeed_} {}
+        rng_{kSeed_} {
+    for (auto& s : segments_) {
+        s = new Segment();
+    }
+}
 
 // Ivan
 BambooFilter::~BambooFilter() {
@@ -116,14 +120,14 @@ void BambooFilter::Expand() { // TODO: CHECK IF THIS IS GOOD? Erase by bit first
         overflow_segment = overflow_segment->GetOverflow();
     }
 
-    delete orig_segment->GetOverflow();
+    orig_segment->ClearOverflow();
 
     orig_segment->EraseByBit(1, num_bits_table_); // Remove entries where the newly extended segment bit is 1
     splt_segment->EraseByBit(0, num_bits_table_); // Remove entries where the newly extended segment bit is 0
 
     // Return overflow elements to matching segments
     for (std::pair<uint32_t, uint32_t> element : overflow_elements) {
-        if (element.second & uint32_t{1} << num_bits_table_ != uint32_t{0}) {
+        if ((element.second & (uint32_t{1} << num_bits_table_)) != uint32_t{0}) {
             splt_segment->Insert(element.second, element.first, rng_);
         } else {
             orig_segment->Insert(element.second, element.first, rng_);

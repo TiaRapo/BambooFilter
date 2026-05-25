@@ -20,7 +20,8 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> to_add;
     std::vector<std::string> to_lookup;
     
-    GenerateRandom64(num_operations, to_add, to_lookup);
+    std::cout << "Preparing random data...\n";
+    GenerateRandom64SeededMT(num_operations, to_add, to_lookup, 42);
     
     std::vector<std::span<const std::byte>> to_add_bytes;
     std::vector<std::span<const std::byte>> to_lookup_bytes;

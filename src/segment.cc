@@ -65,6 +65,12 @@ bool Segment::MergeSegment(Segment* other, std::mt19937& rng) {
     return true;
 }
 
+// Ivan
+void Segment::ClearOverflow() {
+    delete overflow_;
+    overflow_ = nullptr;
+}
+
 // Ivan & Tia
 bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
     if (buckets_[index_bucket].Lookup(fingerprint)) {
