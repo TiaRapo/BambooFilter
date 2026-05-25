@@ -12,14 +12,14 @@
 #include "timing.h"
 
 int main(int argc, char* argv[]) {
-    uint32_t num_operations = static_cast<uint32_t>(std::stoul(argv[1]));
+    std::string filepath = argv[1];
     int k = atoi(argv[2]);
-    std::string filepath = argv[3];
+    uint32_t num_operations = static_cast<uint32_t>(std::stoul(argv[3]));
 
     if (!std::filesystem::exists(filepath)) return 1;
 
     std::ifstream in_file(filepath);
-    std::ofstream out_file("../../tests/output/test_file.txt");
+    std::ofstream out_file("/output/test_file.txt");
 
     std::string line;
     std::string kmer = "";

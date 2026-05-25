@@ -15,7 +15,7 @@
 int main(int argc, char* argv[]) {
     uint32_t num_operations = static_cast<uint32_t>(std::stoul(argv[1]));
 
-    std::ofstream out_file("../../tests/output/test_random.txt");
+    std::ofstream out_file("/output/test_random.txt");
 
     std::vector<std::string> to_add;
     std::vector<std::string> to_lookup;

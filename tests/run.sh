@@ -4,7 +4,7 @@ set -euo pipefail
 
 usage() {
     echo "Usage:"
-    echo "  $0 file <PATH <K-MER>"
+    echo "  $0 file <PATH <K-MER> <COUNT>"
     echo "  $0 random <COUNT>"
 }
 
@@ -22,11 +22,12 @@ make -C "$BUILD_DIR"
 
 case "$1" in
     file)
-        if [ "$#" -ne 3 ]; then
+        if [ "$#" -ne 4 ]; then
             usage
             exit 1
         fi
-        "$BUILD_DIR/test_file" "$2" "$3"
+        cd "$SCRIPT_DIR"
+        "$BUILD_DIR/test_file" "$2" "$3" "$4"
         ;;
 
     random)
@@ -34,6 +35,7 @@ case "$1" in
             usage
             exit 1
         fi
+        cd "$SCRIPT_DIR"
         "$BUILD_DIR/test_random" "$2"
         ;;
 
