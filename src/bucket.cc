@@ -7,6 +7,11 @@
 #include "config.h"
 
 // Ivan
+Bucket::Bucket()
+        : size_{0},
+        entries_{} {}
+
+// Ivan
 [[nodiscard]] uint8_t Bucket::GetSize() const noexcept {
     return size_;
 }

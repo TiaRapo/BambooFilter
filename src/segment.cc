@@ -7,6 +7,11 @@
 
 #include "config.h"
 
+// Ivan
+Segment::Segment()
+        : buckets_{},
+        overflow_{nullptr} {}
+
 // Tia
 Segment::Segment(Segment* original)
         : buckets_{original->buckets_},

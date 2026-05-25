@@ -12,7 +12,7 @@
 class Segment {
     public:
         // Constructors & Destructors
-        Segment() = default;
+        Segment();
         Segment(Segment* original);
         ~Segment();
 

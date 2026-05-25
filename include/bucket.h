@@ -7,7 +7,7 @@
 class Bucket {
     public:
         // Constructors & Destructors
-        Bucket() = default;
+        Bucket();
         ~Bucket() = default;
 
         // Getters

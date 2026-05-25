@@ -134,10 +134,10 @@ void BambooFilter::Expand() { // TODO: CHECK IF THIS IS GOOD? Erase by bit first
         }
     }
 
+    uint32_t round_size = uint32_t{1} << (num_bits_table_ - kNumBitsBucket);
     index_split_sgm_++;
-
-    if (index_split_sgm_ == (1u << (int)ceil(log2(segments_.size())))) {
-        index_split_sgm_ = 0u;
+    if (index_split_sgm_ == round_size) {
+        index_split_sgm_ = 0;
         num_bits_table_++;
     }
 }
