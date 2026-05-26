@@ -100,6 +100,35 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "False negatives: " << num_operations - test << '\n';
+    std::cout << "Capacity after inserting: " << bf->GetCapacity() << '\n';
+
+    for (auto& elem : to_add_bytes) {
+        bf->Delete(elem);
+    }
+
+    test = 0;
+    for (auto& elem : to_add_bytes) {
+        if (bf->Lookup(elem)) {
+            test++;
+        }
+    }
+
+    std::cout << "Found after deleting everything: " << test << '\n';
+    std::cout << "Capacity after deleting: " << bf->GetCapacity() << '\n';
+
+    for (auto& elem : to_add_bytes) {
+        bf->Insert(elem);
+    }
+
+    test = 0;
+    for (auto& elem : to_add_bytes) {
+        if (bf->Lookup(elem)) {
+            test++;
+        }
+    }
+
+    std::cout << "False negatives after reinserting everything: " << to_add_bytes.size() - test << '\n';
+    std::cout << "Capacity after inserting again: " << bf->GetCapacity() << '\n';
 
     delete bf;
 
