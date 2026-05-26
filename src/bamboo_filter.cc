@@ -13,15 +13,20 @@
 #include "wyhash.h"
 
 // Ivan & Tia
-BambooFilter::BambooFilter(uint32_t initial_capacity)
-        : kNumBitsInitialTable_{std::max((size_t)ceil(log2(static_cast<double>(initial_capacity) / (double)kFingerprintsPerBucket)), kNumBitsBucket + 1)},
+BambooFilter::BambooFilter(size_t initial_capacity)
+        : kNumBitsInitialTable_{
+            std::max(
+                static_cast<size_t>(ceil(log2(static_cast<double>(initial_capacity) / static_cast<double>(kFingerprintsPerBucket)))),
+                kNumBitsBucket + 1 // Must have at least one segment index bit
+            )
+        },
         kSeed_{static_cast<uint32_t>(std::random_device{}())},
         segments_(size_t{1} << (kNumBitsInitialTable_ - kNumBitsBucket)),
         num_bits_table_{kNumBitsInitialTable_},
         num_elems_{0},
-        index_split_sgm_{0u},
+        index_split_sgm_{0},
         rng_{kSeed_} {
-    for (auto& s : segments_) {
+    for (auto& s : segments_) { // They are nullptr initially
         s = new Segment();
     }
 }
@@ -36,6 +41,12 @@ BambooFilter::~BambooFilter() {
 // Ivan
 [[nodiscard]] size_t BambooFilter::GetNumElems() const noexcept {
     return num_elems_;
+}
+
+// Tia
+[[nodiscard]] uint32_t BambooFilter::GetCapacity() const noexcept {
+    uint32_t total_cap = segments_.size() * kBucketsPerSegment * kFingerprintsPerBucket;
+    return total_cap;
 }
 
 // Ivan
@@ -92,12 +103,6 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
     }
 
     return deleted;
-}
-
-// Tia
-[[nodiscard]] uint32_t BambooFilter::GetCapacity() const noexcept {
-    uint32_t total_cap = segments_.size() * kBucketsPerSegment * kFingerprintsPerBucket;
-    return total_cap;
 }
 
 // Tia

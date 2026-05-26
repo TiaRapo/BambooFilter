@@ -3,22 +3,23 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 
-// Configurations / Global constants
+// Configurations
+inline constexpr size_t kNumBitsBucket = 10;
+inline constexpr size_t kFingerprintsPerBucket = 4;
+inline constexpr size_t kNumBitsFingerprint = 12;
+inline constexpr size_t kMaxEvictions = 8;
+inline constexpr size_t kResizingThreshold = 2 * 4 * (1 << kNumBitsBucket); // Must be a power of 2
 
-inline constexpr std::size_t kNumBitsBucket = 10;
-inline constexpr std::size_t kBucketsPerSegment = (std::size_t{1} << kNumBitsBucket);
-inline constexpr std::uint32_t kMaskBucket = (std::uint32_t{1} << kNumBitsBucket) - std::uint32_t{1};
+// Compiler checks
+static_assert(kNumBitsBucket < std::numeric_limits<uint32_t>::digits);
+static_assert(kNumBitsFingerprint < std::numeric_limits<uint32_t>::digits);
+static_assert(kNumBitsBucket + kNumBitsFingerprint < std::numeric_limits<uint32_t>::digits); // Leave Space for initial segment bits
 
-inline constexpr std::size_t kFingerprintsPerBucket = 4;
-
-inline constexpr std::size_t kNumBitsFingerprint = 12;
-inline constexpr std::uint32_t kMaskFingerprint = (std::uint32_t{1} << kNumBitsFingerprint) - std::uint32_t{1};
-inline constexpr std::uint32_t kEmptyFingerprint = 0u;
-inline constexpr std::uint32_t kEmptyFingerprintReplacement = 1u;
-
-inline constexpr std::size_t kResizingThreshold = 2 * 4 * (1 << kNumBitsBucket);    // Must be a power of 2
-
-inline constexpr std::size_t kMaxEvictions = 8;
+// Constants based on configurations
+inline constexpr size_t kBucketsPerSegment = size_t{1} << kNumBitsBucket;
+inline constexpr uint32_t kMaskBucket = (uint32_t{1} << kNumBitsBucket) - uint32_t{1};
+inline constexpr uint32_t kMaskFingerprint = (uint32_t{1} << kNumBitsFingerprint) - uint32_t{1};
 
 #endif
