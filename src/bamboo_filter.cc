@@ -7,6 +7,7 @@
 #include <vector>
 #include <memory>
 #include <utility>
+#include <limits>
 
 #include "config.h"
 #include "segment.h"
@@ -57,7 +58,7 @@ bool BambooFilter::Insert(std::span<const std::byte> elem) {
     segments_[index_segment]->Insert(fingerprint, index_bucket, rng_);
     num_elems_++;
     
-    if (!(num_elems_ & (kResizingThreshold - 1))) {
+    if (!(num_elems_ & (kResizingThreshold - 1))) { // num_elems_ is multiple of kResizingThreshold
         Expand();
     }
 
@@ -83,18 +84,18 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
     uint32_t fingerprint, index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
-    bool deleted = false;
+    bool is_deleted = false;
 
     Segment* segment = segments_[index_segment];
 
     for (Segment* segment = segments_[index_segment] ; segment != nullptr ; segment = segment->GetOverflow()) {
         if (segment->Delete(fingerprint, index_bucket)) {
-            deleted = true;
+            is_deleted = true;
             break;
         }
     }
 
-    if (deleted) {
+    if (is_deleted) {
         if (!(num_elems_ & (kResizingThreshold - 1))) {
             Compress();
         }
@@ -102,7 +103,7 @@ bool BambooFilter::Delete(std::span<const std::byte> elem) {
         num_elems_--;
     }
 
-    return deleted;
+    return is_deleted;
 }
 
 // Tia
@@ -175,7 +176,7 @@ inline void BambooFilter::CalculateIndices(
 ) const {
     uint32_t hash = wyhash(elem.data(), elem.size(), kSeed_, _wyp);
 
-    fingerprint = (hash >> (sizeof(hash) * 8 - kNumBitsFingerprint)) & kMaskFingerprint;
+    fingerprint = (hash >> (std::numeric_limits<uint32_t>::digits - kNumBitsFingerprint)) & kMaskFingerprint;
     index_bucket = hash & kMaskBucket;
-    index_segment = (hash >> kNumBitsBucket) & ((uint32_t{1} << (num_bits_table_ - kNumBitsBucket)) - 1u);
+    index_segment = (hash >> kNumBitsBucket) & ((uint32_t{1} << (num_bits_table_ - kNumBitsBucket)) - uint32_t{1});
 }
