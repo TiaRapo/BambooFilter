@@ -22,14 +22,14 @@ Segment::~Segment() {
     delete overflow_;
 }
 
-// Ivan & Tia
-[[nodiscard]] Segment* Segment::GetOverflow() const noexcept {
-    return overflow_;
-}
-
 // Tia
 [[nodiscard]] const std::array<Bucket, kBucketsPerSegment>& Segment::GetBuckets() const noexcept {
     return buckets_;
+}
+
+// Ivan & Tia
+[[nodiscard]] Segment* Segment::GetOverflow() const noexcept {
+    return overflow_;
 }
 
 // Ivan & Tia
@@ -39,7 +39,12 @@ bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& 
     Segment* segment = this;
     
     while (true) {
-        if (segment->InsertLocal(fingerprint, index_bucket, index_bucket_other, rng)) return true;
+        InsertResult insert_result = segment->InsertLocal(fingerprint, index_bucket, index_bucket_other, rng);
+        if (insert_result.success) return true;
+
+        fingerprint = insert_result.leftover;
+        index_bucket = insert_result.bucket;
+        index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
 
         Segment* overflow = segment->GetOverflow();
         if (overflow == nullptr) {
@@ -53,27 +58,6 @@ bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& 
     }
 
     return false;
-}
-
-// Ivan
-bool Segment::MergeSegment(Segment* other, std::mt19937& rng) {
-    while (other != nullptr) {
-        for (size_t bucket_index = 0 ; bucket_index < kBucketsPerSegment ; bucket_index++) {
-            for (uint8_t i = 0 ; i < other->buckets_[bucket_index].GetSize() ; i++) {
-                Insert(other->buckets_[bucket_index].GetEntries()[i], bucket_index, rng);
-            }
-        }
-
-        other = other->GetOverflow();
-    }
-
-    return true;
-}
-
-// Ivan
-void Segment::ClearOverflow() {
-    delete overflow_;
-    overflow_ = nullptr;
 }
 
 // Ivan & Tia
@@ -113,10 +97,32 @@ void Segment::EraseByBit(bool bit_value, uint32_t bit_index) {
     }
 }
 
+
+// Ivan
+bool Segment::MergeSegment(Segment* other, std::mt19937& rng) {
+    while (other != nullptr) {
+        for (size_t bucket_index = 0 ; bucket_index < kBucketsPerSegment ; bucket_index++) {
+            for (uint8_t i = 0 ; i < other->buckets_[bucket_index].GetSize() ; i++) {
+                Insert(other->buckets_[bucket_index].GetEntries()[i], bucket_index, rng);
+            }
+        }
+
+        other = other->GetOverflow();
+    }
+
+    return true;
+}
+
+// Ivan
+void Segment::ClearOverflow() {
+    delete overflow_;
+    overflow_ = nullptr;
+}
+
 // Ivan & Tia
-bool Segment::InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937 &rng) {
+InsertResult Segment::InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937 &rng) {
     if (buckets_[index_bucket].Insert(fingerprint) || buckets_[index_bucket_other].Insert(fingerprint)) {
-        return true;
+        return {true, 0, 0};
     }
 
     if (rng() & uint32_t{1}) { // 50% chance to pick either of the two buckets
@@ -127,11 +133,11 @@ bool Segment::InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t 
         fingerprint = buckets_[index_bucket].SwapWithRandom(fingerprint, rng);
         index_bucket = GetOtherBucket(index_bucket, fingerprint);
         if (buckets_[index_bucket].Insert(fingerprint)) {
-            return true;
+            return {true, 0, 0};
         }
     }
 
-    return false;
+    return {false, fingerprint, index_bucket};
 }
 
 // Ivan

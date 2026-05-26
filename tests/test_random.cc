@@ -92,6 +92,15 @@ int main(int argc, char* argv[]) {
     out_file << lookup_rate << ';';
     out_file << mem_diff << '\n';
 
+    size_t test = 0;
+    for (auto& elem : to_add_bytes) {
+        if (bf->Lookup(elem)) {
+            test++;
+        }
+    }
+
+    std::cout << "False negatives: " << num_operations - test << '\n';
+
     delete bf;
 
     return 0;

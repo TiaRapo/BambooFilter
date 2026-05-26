@@ -1,3 +1,6 @@
+#ifndef BUCKET_H
+#define BUCKET_H
+
 #include <random>
 #include <array>
 #include <cstdint>
@@ -26,3 +29,5 @@ class Bucket {
         uint8_t size_;
         std::array<uint32_t, kFingerprintsPerBucket> entries_;
 };
+
+#endif

@@ -9,6 +9,12 @@
 #include "config.h"
 #include "bucket.h"
 
+struct InsertResult {
+    bool success;
+    uint32_t leftover;
+    uint32_t bucket;
+};
+
 class Segment {
     public:
         // Constructors & Destructors
@@ -30,7 +36,7 @@ class Segment {
         
     private:
         // Internal helper functions
-        inline bool InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937& rng);
+        inline InsertResult InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937& rng);
         inline void AddOverflow();
         [[nodiscard]] inline uint32_t GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) const;
 

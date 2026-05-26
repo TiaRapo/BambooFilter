@@ -13,7 +13,7 @@
 class BambooFilter {
     public:
         // Constructors & Destructors
-        BambooFilter(uint32_t initial_capacity);
+        BambooFilter(size_t initial_capacity);
         ~BambooFilter();
 
         // Getters
