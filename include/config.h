@@ -7,7 +7,7 @@
 
 // Configurations
 inline constexpr size_t kNumBitsBucket = 10;
-inline constexpr size_t kFingerprintsPerBucket = 4;
+inline constexpr size_t kFingerprintsPerBucket = 4; // Helps some operations if this is a power of 2, but it is not necessary
 inline constexpr size_t kNumBitsFingerprint = 12;
 inline constexpr size_t kMaxEvictions = 8;
 inline constexpr size_t kResizingThreshold = 2 * 4 * (1 << kNumBitsBucket); // Must be a power of 2
