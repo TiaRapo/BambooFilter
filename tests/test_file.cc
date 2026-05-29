@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
     auto it = to_add.begin();
     for (auto& elem : to_lookup) {
-        while (*it < elem) {
+        while (*it < elem && it != to_add.end()) {
             it++;
         }
         if (*it == elem) {

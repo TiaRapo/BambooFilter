@@ -18,11 +18,14 @@ BambooFilter::BambooFilter(size_t initial_capacity)
         : kNumBitsInitialTable_{
             kNumBitsBucket +
             static_cast<size_t>(
-                ceil(log2(
-                    static_cast<double>(initial_capacity) /
-                    static_cast<double>(kFingerprintsPerBucket) /
-                    static_cast<double>(kBucketsPerSegment)
-                ))
+                std::max(
+                    ceil(log2(
+                        static_cast<double>(initial_capacity) /
+                        static_cast<double>(kFingerprintsPerBucket) /
+                        static_cast<double>(kBucketsPerSegment)
+                    )),
+                    1.0
+                )
             ),
         },
         kSeed_{static_cast<uint32_t>(std::random_device{}())},

@@ -128,16 +128,16 @@ int main(int argc, char* argv[]) {
     size_t count_found_real = 0;
     std::sort(to_add.begin(), to_add.end());
     std::sort(to_lookup.begin(), to_lookup.end());
-
     auto it = to_add.begin();
     for (auto& elem : to_lookup) {
-        while (*it < elem) {
+        while (*it < elem && it != to_add.end()) {
             it++;
         }
         if (*it == elem) {
             count_found_real++;
         }
     }
+
 
     double false_positive_rate = (found_count - count_found_real) / (double)num_operations;
 
