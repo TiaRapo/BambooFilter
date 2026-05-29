@@ -101,11 +101,30 @@ int main(int argc, char* argv[]) {
     std::cout << "Positive finds: " << pos << "\n";
     std::cout << "Negative finds: " << neg << "\n";
 
-    out_file << "# k_mer;operations;insert_rate;lookup_rate\n";
+    size_t count_found_real = 0;
+    std::sort(to_add.begin(), to_add.end());
+    std::sort(to_lookup.begin(), to_lookup.end());
+
+    auto it = to_add.begin();
+    for (auto& elem : to_lookup) {
+        while (*it < elem) {
+            it++;
+        }
+        if (*it == elem) {
+            count_found_real++;
+        }
+    }
+
+    double false_positive_rate = (pos - count_found_real) / (double)num_operations;
+
+    std::cout << "False positive rate: " << false_positive_rate << '\n';
+
+    out_file << "# k_mer;operations;insert_rate;lookup_rate;false_positive_rate\n";
     out_file << k << ';';
     out_file << to_lookup_bytes.size() << ';';
     out_file << insert_rate << ';';
-    out_file << lookup_rate << '\n';
+    out_file << lookup_rate << ';';
+    out_file << false_positive_rate << '\n';
     
     delete bf;
 

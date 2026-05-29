@@ -85,11 +85,30 @@ int main(int argc, char* argv[]) {
     
     size_t mem_diff = mem2 - mem1;
     std::cout << "MEM_diff: " << mem_diff << std::endl;
-    
-    out_file << "# insert_lookup_count;insert_rate;lookup_rate;memory(bytes)\n";
+
+    size_t count_found_real = 0;
+    std::sort(to_add.begin(), to_add.end());
+    std::sort(to_lookup.begin(), to_lookup.end());
+
+    auto it = to_add.begin();
+    for (auto& elem : to_lookup) {
+        while (*it < elem) {
+            it++;
+        }
+        if (*it == elem) {
+            count_found_real++;
+        }
+    }
+
+    double false_positive_rate = (found_count - count_found_real) / (double)num_operations;
+
+    std::cout << "False positive rate: " << false_positive_rate << '\n';
+
+    out_file << "# insert_lookup_count;insert_rate;lookup_rate;false_positive_rate;memory(bytes)\n";
     out_file << insert_count << ';';
     out_file << insert_rate << ';';
     out_file << lookup_rate << ';';
+    out_file << false_positive_rate << ';';
     out_file << mem_diff << '\n';
 
     size_t test = 0;
