@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <type_traits>
 
 // Configurations
 inline constexpr size_t kNumBitsBucket = 10;
@@ -16,6 +17,16 @@ inline constexpr size_t kResizingThreshold = 2 * 4 * (1 << kNumBitsBucket); // M
 static_assert(kNumBitsBucket < std::numeric_limits<uint32_t>::digits);
 static_assert(kNumBitsFingerprint < std::numeric_limits<uint32_t>::digits);
 static_assert(kNumBitsBucket + kNumBitsFingerprint < std::numeric_limits<uint32_t>::digits); // Leave Space for initial segment bits
+
+using fingerprint_t = std::conditional_t<
+    kNumBitsFingerprint <= 8,
+    uint8_t,
+    std::conditional_t<
+        kNumBitsFingerprint <= 16,
+        uint16_t,
+        uint32_t
+    >
+>;
 
 // Constants based on configurations
 inline constexpr size_t kBucketsPerSegment = size_t{1} << kNumBitsBucket;

@@ -31,7 +31,7 @@ class BambooFilter {
         void Compress();
         inline void CalculateIndices(
             std::span<const std::byte> elem,
-            uint32_t& fingerprint,
+            fingerprint_t& fingerprint,
             uint32_t& index_bucket,
             uint32_t& index_segment
         ) const;

@@ -52,7 +52,8 @@ BambooFilter::~BambooFilter() {
 
 // Ivan
 bool BambooFilter::Insert(std::span<const std::byte> elem) {
-    uint32_t fingerprint, index_bucket, index_segment;
+    fingerprint_t fingerprint;
+    uint32_t index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
     segments_[index_segment]->Insert(fingerprint, index_bucket, rng_);
@@ -67,7 +68,8 @@ bool BambooFilter::Insert(std::span<const std::byte> elem) {
 
 // Tia
 bool BambooFilter::Lookup(std::span<const std::byte> elem) const {
-    uint32_t fingerprint, index_bucket, index_segment;
+    fingerprint_t fingerprint;
+    uint32_t index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
     for (Segment* segment = segments_[index_segment] ; segment != nullptr ; segment = segment->GetOverflow()) {
@@ -81,7 +83,8 @@ bool BambooFilter::Lookup(std::span<const std::byte> elem) const {
 
 // Ivan & Tia
 bool BambooFilter::Delete(std::span<const std::byte> elem) {
-    uint32_t fingerprint, index_bucket, index_segment;
+    fingerprint_t fingerprint;
+    uint32_t index_bucket, index_segment;
     CalculateIndices(elem, fingerprint, index_bucket, index_segment);
 
     bool is_deleted = false;
@@ -114,7 +117,7 @@ void BambooFilter::Expand() {
     segments_.push_back(splt_segment);
 
     // Collect all bucket_index-fingerprint pairs from the overflow segments 
-    std::vector<std::pair<uint32_t, uint32_t>> overflow_elements;
+    std::vector<std::pair<uint32_t, fingerprint_t>> overflow_elements;
     Segment* overflow_segment = orig_segment->GetOverflow();
     while (overflow_segment) {
         std::array<Bucket, kBucketsPerSegment> overflow_buckets = overflow_segment->GetBuckets();
@@ -133,8 +136,8 @@ void BambooFilter::Expand() {
     splt_segment->EraseByBit(0, round); // Remove entries where the leftmost segment bit is 0
 
     // Return overflow elements to matching segments
-    for (std::pair<uint32_t, uint32_t> element : overflow_elements) {
-        if ((element.second & (uint32_t{1} << round)) != uint32_t{0}) {
+    for (std::pair<uint32_t, fingerprint_t> element : overflow_elements) {
+        if ((element.second & (fingerprint_t{1} << round)) != fingerprint_t{0}) {
             splt_segment->Insert(element.second, element.first, rng_);
         } else {
             orig_segment->Insert(element.second, element.first, rng_);
@@ -169,7 +172,7 @@ void BambooFilter::Compress() {
 // Ivan
 inline void BambooFilter::CalculateIndices(
     std::span<const std::byte> elem,
-    uint32_t& fingerprint,
+    fingerprint_t& fingerprint,
     uint32_t& index_bucket,
     uint32_t& index_segment
 ) const {

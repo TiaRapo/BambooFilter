@@ -33,7 +33,7 @@ Segment::~Segment() {
 }
 
 // Ivan & Tia
-bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& rng) {
+bool Segment::Insert(fingerprint_t fingerprint, uint32_t index_bucket, std::mt19937& rng) {
     uint32_t index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
 
     Segment* segment = this;
@@ -42,7 +42,7 @@ bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& 
         InsertResult insert_result = segment->InsertLocal(fingerprint, index_bucket, index_bucket_other, rng);
         if (insert_result.success) return true;
 
-        fingerprint = insert_result.leftover;
+        fingerprint = insert_result.fingerprint;
         index_bucket = insert_result.bucket;
         index_bucket_other = GetOtherBucket(index_bucket, fingerprint);
 
@@ -61,7 +61,7 @@ bool Segment::Insert(uint32_t fingerprint, uint32_t index_bucket, std::mt19937& 
 }
 
 // Ivan & Tia
-bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
+bool Segment::Lookup(fingerprint_t fingerprint, uint32_t index_bucket) const {
     if (buckets_[index_bucket].Lookup(fingerprint)) {
         return true;
     }
@@ -76,7 +76,7 @@ bool Segment::Lookup(uint32_t fingerprint, uint32_t index_bucket) const {
 }
 
 // Ivan
-bool Segment::Delete(uint32_t fingerprint, uint32_t index_bucket) {
+bool Segment::Delete(fingerprint_t fingerprint, uint32_t index_bucket) {
     if (buckets_[index_bucket].Delete(fingerprint)) {
         return true;
     }
@@ -120,7 +120,7 @@ void Segment::ClearOverflow() {
 }
 
 // Ivan & Tia
-InsertResult Segment::InsertLocal(uint32_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937 &rng) {
+InsertResult Segment::InsertLocal(fingerprint_t fingerprint, uint32_t index_bucket, uint32_t index_bucket_other, std::mt19937 &rng) {
     if (buckets_[index_bucket].Insert(fingerprint) || buckets_[index_bucket_other].Insert(fingerprint)) {
         return {true, 0, 0};
     }
@@ -146,6 +146,6 @@ void Segment::AddOverflow() {
 }
 
 // Ivan
-[[nodiscard]] inline uint32_t Segment::GetOtherBucket(uint32_t index_bucket, uint32_t fingerprint) const {
+[[nodiscard]] inline uint32_t Segment::GetOtherBucket(uint32_t index_bucket, fingerprint_t fingerprint) const {
     return (index_bucket ^ fingerprint) & kMaskBucket;
 }

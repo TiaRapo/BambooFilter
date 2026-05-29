@@ -15,19 +15,19 @@ class Bucket {
 
         // Getters
         [[nodiscard]] uint8_t GetSize() const noexcept;
-        [[nodiscard]] const std::array<uint32_t, kFingerprintsPerBucket>& GetEntries() const noexcept;
+        [[nodiscard]] const std::array<fingerprint_t, kFingerprintsPerBucket>& GetEntries() const noexcept;
 
         // Operations
-        bool Insert(uint32_t fingerprint);
-        bool Delete(uint32_t fingerprint);
-        bool Lookup(uint32_t fingerprint) const;
+        bool Insert(fingerprint_t fingerprint);
+        bool Delete(fingerprint_t fingerprint);
+        bool Lookup(fingerprint_t fingerprint) const;
         void EraseByBit(bool bit_value, uint32_t bit_index);
-        [[nodiscard]] uint32_t SwapWithRandom(uint32_t fingerprint, std::mt19937 &rng);
+        [[nodiscard]] fingerprint_t SwapWithRandom(fingerprint_t fingerprint, std::mt19937 &rng);
 
     private:
         // Attributes
         uint8_t size_;
-        std::array<uint32_t, kFingerprintsPerBucket> entries_;
+        std::array<fingerprint_t, kFingerprintsPerBucket> entries_;
 };
 
 #endif
